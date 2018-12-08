@@ -12,13 +12,14 @@
 namespace Symfony\Flex\Configurator;
 
 use Harmony\Flex\Configurator\AbstractConfigurator;
+use Symfony\Flex\Lock;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  */
 class MakefileConfigurator extends AbstractConfigurator
 {
-    public function configure($recipe, $definitions, array $options = [])
+    public function configure($recipe, $definitions, Lock $lock, array $options = [])
     {
         $this->write('Added Makefile entries');
 
@@ -53,7 +54,7 @@ EOF
         }
     }
 
-    public function unconfigure($recipe, $vars)
+    public function unconfigure($recipe, $vars, Lock $lock)
     {
         if (!file_exists($makefile = $this->options->get('root-dir').'/Makefile')) {
             return;

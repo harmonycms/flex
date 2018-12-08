@@ -15,13 +15,15 @@ use Composer\Factory;
 use Composer\Json\JsonFile;
 use Composer\Json\JsonManipulator;
 use Harmony\Flex\Configurator\AbstractConfigurator;
+use Symfony\Flex\Lock;
+use Symfony\Flex\Recipe;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  */
 class ComposerScriptsConfigurator extends AbstractConfigurator
 {
-    public function configure($recipe, $scripts, array $options = [])
+    public function configure($recipe, $scripts, Lock $lock, array $options = [])
     {
         $json = new JsonFile(Factory::getComposerFile());
 
@@ -35,7 +37,7 @@ class ComposerScriptsConfigurator extends AbstractConfigurator
         file_put_contents($json->getPath(), $manipulator->getContents());
     }
 
-    public function unconfigure($recipe, $scripts)
+    public function unconfigure($recipe, $scripts, Lock $lock)
     {
         $json = new JsonFile(Factory::getComposerFile());
 

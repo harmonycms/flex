@@ -13,6 +13,7 @@ namespace Harmony\Flex;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
+use Symfony\Flex\Lock;
 use Symfony\Flex\Options;
 use Symfony\Flex\Configurator as SymfonyConfigurator;
 use Symfony\Flex\Recipe;
@@ -69,27 +70,29 @@ class Configurator
 
     /**
      * @param Recipe $recipe
+     * @param Lock   $lock
      * @param array  $options
      */
-    public function install(Recipe $recipe, array $options = [])
+    public function install(Recipe $recipe, Lock $lock, array $options = [])
     {
         $manifest = $recipe->getManifest();
         foreach (array_keys($this->configurators) as $key) {
             if (isset($manifest[$key])) {
-                $this->get($key)->configure($recipe, $manifest[$key], $options);
+                $this->get($key)->configure($recipe, $manifest[$key], $lock, $options);
             }
         }
     }
 
     /**
      * @param Recipe $recipe
+     * @param Lock   $lock
      */
-    public function uninstall(Recipe $recipe)
+    public function uninstall(Recipe $recipe, Lock $lock)
     {
         $manifest = $recipe->getManifest();
         foreach (array_keys($this->configurators) as $key) {
             if (isset($manifest[$key])) {
-                $this->get($key)->unconfigure($recipe, $manifest[$key]);
+                $this->get($key)->unconfigure($recipe, $manifest[$key], $lock);
             }
         }
     }

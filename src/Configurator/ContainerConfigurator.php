@@ -12,19 +12,20 @@
 namespace Symfony\Flex\Configurator;
 
 use Harmony\Flex\Configurator\AbstractConfigurator;
+use Symfony\Flex\Lock;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  */
 class ContainerConfigurator extends AbstractConfigurator
 {
-    public function configure($recipe, $parameters, array $options = [])
+    public function configure($recipe, $parameters, Lock $lock, array $options = [])
     {
         $this->write('Setting parameters');
         $this->addParameters($parameters);
     }
 
-    public function unconfigure($recipe, $parameters)
+    public function unconfigure($recipe, $parameters, Lock $lock)
     {
         $this->write('Unsetting parameters');
         $target = $this->options->get('root-dir').'/'.$this->options->expandTargetDir('%CONFIG_DIR%/services.yaml');

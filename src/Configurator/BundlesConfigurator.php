@@ -12,13 +12,14 @@
 namespace Symfony\Flex\Configurator;
 
 use Harmony\Flex\Configurator\AbstractConfigurator;
+use Symfony\Flex\Lock;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  */
 class BundlesConfigurator extends AbstractConfigurator
 {
-    public function configure($recipe, $bundles, array $options = [])
+    public function configure($recipe, $bundles, Lock $lock, array $options = [])
     {
         $this->write('Enabling the package as a Symfony bundle');
         $file = $this->getConfFile();
@@ -38,7 +39,7 @@ class BundlesConfigurator extends AbstractConfigurator
         $this->dump($file, $registered);
     }
 
-    public function unconfigure($recipe, $bundles)
+    public function unconfigure($recipe, $bundles, Lock $lock)
     {
         $this->write('Disabling the Symfony bundle');
         $file = $this->getConfFile();
