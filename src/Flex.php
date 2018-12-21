@@ -149,6 +149,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
      *
      * @throws \Exception
      * @throws \Http\Client\Exception
+     * @throws \Throwable
      */
     public function activate(Composer $composer, IOInterface $io)
     {
@@ -159,15 +160,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
             return;
         }
 
-        // to avoid issues when Flex is upgraded, we load all PHP classes now
-        // that way, we are sure to use all files from the same version
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(__DIR__,
-            \FilesystemIterator::SKIP_DOTS)) as $file) {
-            if ('.php' === substr($file, - 4)) {
-                /** @noinspection PhpIncludeInspection */
-                require_once $file;
-            }
-        }
+        $this->_requireDependencies($composer);
 
         $this->composer = $composer;
         $this->io       = new ConsoleIO($io);
@@ -951,6 +944,28 @@ class Flex implements PluginInterface, EventSubscriberInterface
         $lockData                 = $locker->getLockData();
         $lockData['content-hash'] = Locker::getContentHash($composerJson);
         $lockFile->write($lockData);
+    }
+
+    /**
+     * @param $composer
+     */
+    private function _requireDependencies($composer): void
+    {
+        // to avoid issues when Flex is upgraded, we load all PHP classes now
+        // that way, we are sure to use all files from the same version
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(__DIR__,
+            \FilesystemIterator::SKIP_DOTS)) as $file) {
+            if ('.php' === substr($file, - 4)) {
+                /** @noinspection PhpIncludeInspection */
+                require_once $file;
+            }
+        }
+
+        // Require HarmonyFlex dependencies not loaded by Composer.
+        // Functions used by Guzzle, dependency of HarmonySDK.
+        require_once $composer->getConfig()->get('vendor-dir') . '/guzzlehttp/guzzle/src/functions.php';
+        require_once $composer->getConfig()->get('vendor-dir') . '/guzzlehttp/psr7/src/functions.php';
+        require_once $composer->getConfig()->get('vendor-dir') . '/guzzlehttp/promises/src/functions.php';
     }
 
     /**
