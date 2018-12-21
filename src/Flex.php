@@ -947,9 +947,9 @@ class Flex implements PluginInterface, EventSubscriberInterface
     }
 
     /**
-     * @param $composer
+     * @param Composer $composer
      */
-    private function _requireDependencies($composer): void
+    private function _requireDependencies(Composer $composer): void
     {
         // to avoid issues when Flex is upgraded, we load all PHP classes now
         // that way, we are sure to use all files from the same version
