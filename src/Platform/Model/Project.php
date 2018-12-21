@@ -1,8 +1,6 @@
 <?php
 
-namespace Harmony\Flex\Platform;
-
-use Harmony\Flex\Platform\Project\Database;
+namespace Harmony\Flex\Platform\Model;
 
 /**
  * Class Project
@@ -33,7 +31,7 @@ class Project
     /** @var \DateTime|Null $updatedAt */
     private $updatedAt;
 
-    /** @var Database[] $databases */
+    /** @var ProjectDatabase[] $databases */
     private $databases = [];
 
     /** @var array $extensions */
@@ -189,7 +187,7 @@ class Project
     }
 
     /**
-     * @return Database[]
+     * @return ProjectDatabase[]
      */
     public function getDatabases(): array
     {
@@ -197,15 +195,23 @@ class Project
     }
 
     /**
-     * @param Database $database
+     * @param ProjectDatabase $database
      *
      * @return Project
      */
-    public function addDatabase(Database $database): Project
+    public function addDatabase(ProjectDatabase $database): Project
     {
         $this->databases[] = $database;
 
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasDatabases(): bool
+    {
+        return !empty($this->databases);
     }
 
     /**
@@ -229,6 +235,14 @@ class Project
     }
 
     /**
+     * @return bool
+     */
+    public function hasExtensions(): bool
+    {
+        return !empty($this->extensions);
+    }
+
+    /**
      * @return array
      */
     public function getPackages(): array
@@ -246,6 +260,14 @@ class Project
         $this->packages = $packages;
 
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasPackages(): bool
+    {
+        return !empty($this->packages);
     }
 
     /**
@@ -269,6 +291,14 @@ class Project
     }
 
     /**
+     * @return bool
+     */
+    public function hasThemes(): bool
+    {
+        return !empty($this->themes);
+    }
+
+    /**
      * @return array
      */
     public function getTranslations(): array
@@ -286,5 +316,13 @@ class Project
         $this->translations = $translations;
 
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasTranslations(): bool
+    {
+        return !empty($this->translations);
     }
 }

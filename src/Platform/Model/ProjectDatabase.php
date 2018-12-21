@@ -1,13 +1,13 @@
 <?php
 
-namespace Harmony\Flex\Platform\Project;
+namespace Harmony\Flex\Platform\Model;
 
 /**
- * Class Database
+ * Class ProjectDatabase
  *
  * @package Harmony\Flex\Platform\Project
  */
-class Database
+class ProjectDatabase
 {
 
     /** @var string $scheme */
@@ -40,6 +40,9 @@ class Database
     /** @var string $url */
     private $url;
 
+    /** @var array $env */
+    private $env = [];
+
     /**
      * @return string
      */
@@ -51,9 +54,9 @@ class Database
     /**
      * @param string $scheme
      *
-     * @return Database
+     * @return ProjectDatabase
      */
-    public function setScheme(string $scheme): Database
+    public function setScheme(string $scheme): ProjectDatabase
     {
         $this->scheme = $scheme;
 
@@ -71,9 +74,9 @@ class Database
     /**
      * @param string|null $host
      *
-     * @return Database
+     * @return ProjectDatabase
      */
-    public function setHost(?string $host): Database
+    public function setHost(?string $host): ProjectDatabase
     {
         $this->host = $host;
 
@@ -91,9 +94,9 @@ class Database
     /**
      * @param string|null $name
      *
-     * @return Database
+     * @return ProjectDatabase
      */
-    public function setName(?string $name): Database
+    public function setName(?string $name): ProjectDatabase
     {
         $this->name = $name;
 
@@ -111,9 +114,9 @@ class Database
     /**
      * @param string|null $user
      *
-     * @return Database
+     * @return ProjectDatabase
      */
-    public function setUser(?string $user): Database
+    public function setUser(?string $user): ProjectDatabase
     {
         $this->user = $user;
 
@@ -131,9 +134,9 @@ class Database
     /**
      * @param string|null $pass
      *
-     * @return Database
+     * @return ProjectDatabase
      */
-    public function setPass(?string $pass): Database
+    public function setPass(?string $pass): ProjectDatabase
     {
         $this->pass = $pass;
 
@@ -151,9 +154,9 @@ class Database
     /**
      * @param int|null $port
      *
-     * @return Database
+     * @return ProjectDatabase
      */
-    public function setPort(?int $port): Database
+    public function setPort(?int $port): ProjectDatabase
     {
         $this->port = $port;
 
@@ -171,9 +174,9 @@ class Database
     /**
      * @param string|null $path
      *
-     * @return Database
+     * @return ProjectDatabase
      */
-    public function setPath(?string $path): Database
+    public function setPath(?string $path): ProjectDatabase
     {
         $this->path = $path;
 
@@ -191,9 +194,9 @@ class Database
     /**
      * @param bool $memory
      *
-     * @return Database
+     * @return ProjectDatabase
      */
-    public function setMemory(bool $memory): Database
+    public function setMemory(bool $memory): ProjectDatabase
     {
         $this->memory = $memory;
 
@@ -211,9 +214,9 @@ class Database
     /**
      * @param array $query
      *
-     * @return Database
+     * @return ProjectDatabase
      */
-    public function setQuery(array $query): Database
+    public function setQuery(array $query): ProjectDatabase
     {
         $this->query = $query;
 
@@ -231,11 +234,31 @@ class Database
     /**
      * @param string $url
      *
-     * @return Database
+     * @return ProjectDatabase
      */
-    public function setUrl(string $url): Database
+    public function setUrl(string $url): ProjectDatabase
     {
         $this->url = $url;
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getEnv(): array
+    {
+        return $this->env;
+    }
+
+    /**
+     * @param array $env
+     *
+     * @return ProjectDatabase
+     */
+    public function setEnv(array $env): ProjectDatabase
+    {
+        $this->env = $env;
 
         return $this;
     }
@@ -249,15 +272,14 @@ class Database
      */
     public function buildDatabaseUrl(): void
     {
-        $this->url
-            =  // scheme
-            ($this->getScheme() ? $this->getScheme() . "://" : '//') . // host
+        $this->url = ($this->getScheme() ? $this->getScheme() . "://" : '//') .// scheme
             ($this->getHost() ?
                 (($this->getUser() ? $this->getUser() . ($this->getPass() ? ":" . $this->getPass() : '') . '@' : '') .
-                    $this->getHost() . ($this->getPort() ? ":" . $this->getPort() : '')) : '') . // path
-            ($this->getPath() ? '/' . $this->getPath() : '') . // memory
-            (true === $this->isMemory() ? '/:memory:' : '') . // db_name
-            ($this->getName() ? '/' . $this->getName() : '') . // query
-            (!empty($this->getQuery()) ? '?' . http_build_query($this->getQuery(), '', '&') : '');
+                    $this->getHost() . ($this->getPort() ? ":" . $this->getPort() : '')) : '') . // host
+            ($this->getPath() ? '/' . $this->getPath() : '') . // path
+            (true === $this->isMemory() ? '/:memory:' : '') . // memory
+            (($this->getName() && 'mongodb' !== $this->getScheme()) ? '/' . $this->getName() : '') . // db_name
+            (!empty($this->getQuery()) ? '?' . http_build_query($this->getQuery(), '', '&') : ''); // query
     }
+
 }

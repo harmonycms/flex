@@ -2,7 +2,8 @@
 
 namespace Harmony\Flex\Serializer\Normalizer;
 
-use Harmony\Flex\Platform\Project;
+use Harmony\Flex\Platform\Model\Project;
+use Harmony\Flex\Platform\Model\ProjectDatabase;
 use Symfony\Component\Serializer\Exception\BadMethodCallException;
 use Symfony\Component\Serializer\Exception\ExtraAttributesException;
 use Symfony\Component\Serializer\Exception\InvalidArgumentException;
@@ -67,10 +68,8 @@ class ProjectNormalizer implements DenormalizerInterface, DenormalizerAwareInter
         }
         if (isset($data['databases']) && is_array($data['databases'])) {
             foreach ($data['databases'] as $db) {
-                $database = new Project\Database();
-                if (isset($db['scheme'])) {
-                    $database->setScheme($db['scheme']);
-                }
+                $database = new ProjectDatabase();
+                $database->setScheme($db['scheme']);
                 if (isset($db['host'])) {
                     $database->setHost($db['host']);
                 }
@@ -95,7 +94,19 @@ class ProjectNormalizer implements DenormalizerInterface, DenormalizerAwareInter
                 if (isset($db['query'])) {
                     $database->setQuery($db['query']);
                 }
+                // Build database url formatted like
                 $database->buildDatabaseUrl();
+
+                switch ($database->getScheme()) {
+                    case 'mongodb':
+                        $database->setEnv(['MONGODB_URL' => $database->getUrl(), 'MONGODB_DB' => $database->getName()]);
+                        break;
+                    case 'mysql':
+                    case 'pgsql':
+                    case 'sqlite':
+                        $database->setEnv(['DATABASE_URL' => $database->getUrl()]);
+                        break;
+                }
 
                 $project->addDatabase($database);
             }
