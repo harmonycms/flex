@@ -183,7 +183,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
             $this->rfs);
         $setRepositories = \Closure::bind(function (RepositoryManager $manager) use (&$symfonyRequire) {
             $manager->repositoryClasses = $this->repositoryClasses;
-            $manager->setRepositoryClass('composer', HarmonyRepository::class);
+            $manager->prependRepository(new HarmonyRepository([], $this->io, $this->config, null, $this->rfs));
             $manager->repositories = $this->repositories;
             $i                     = 0;
             foreach (RepositoryFactory::defaultRepos(null, $this->config, $manager) as $repo) {
@@ -963,9 +963,15 @@ class Flex implements PluginInterface, EventSubscriberInterface
 
         // Require HarmonyFlex dependencies not loaded by Composer.
         // Functions used by Guzzle, dependency of HarmonySDK.
-        require_once $composer->getConfig()->get('vendor-dir') . '/guzzlehttp/guzzle/src/functions.php';
-        require_once $composer->getConfig()->get('vendor-dir') . '/guzzlehttp/psr7/src/functions.php';
-        require_once $composer->getConfig()->get('vendor-dir') . '/guzzlehttp/promises/src/functions.php';
+        if (false === function_exists('\GuzzleHttp\uri_template')) {
+            require_once $composer->getConfig()->get('vendor-dir') . '/guzzlehttp/guzzle/src/functions.php';
+        }
+        if (false === function_exists('\GuzzleHttp\Psr7\str')) {
+            require_once $composer->getConfig()->get('vendor-dir') . '/guzzlehttp/psr7/src/functions.php';
+        }
+        if (false === function_exists('\GuzzleHttp\Promise\queue')) {
+            require_once $composer->getConfig()->get('vendor-dir') . '/guzzlehttp/promises/src/functions.php';
+        }
     }
 
     /**
