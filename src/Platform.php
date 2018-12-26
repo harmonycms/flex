@@ -3,7 +3,6 @@
 namespace Harmony\Flex;
 
 use Composer\Composer;
-use Composer\Config;
 use Composer\IO\IOInterface;
 use Composer\Json\JsonFile;
 use Harmony\Flex\Config\JsonConfigSource;
