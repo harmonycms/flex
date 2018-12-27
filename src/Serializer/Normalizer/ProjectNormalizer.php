@@ -111,6 +111,9 @@ class ProjectNormalizer implements DenormalizerInterface, DenormalizerAwareInter
                 $project->addDatabase($database);
             }
         }
+        if (isset($data['packages'])) {
+            $project->setPackages($data['packages']);
+        }
 
         return $project;
     }
