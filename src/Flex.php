@@ -542,6 +542,9 @@ class Flex implements PluginInterface, EventSubscriberInterface
             $this->platform->authenticate();
             $this->project = $this->platform->getProject();
             if (true === $this->project->isActivated()) {
+                // Install packages
+                $this->project->installPackages();
+
                 // Install stacks.
                 $this->project->installStacks();
 
