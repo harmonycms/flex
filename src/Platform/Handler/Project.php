@@ -183,8 +183,34 @@ class Project
     public function installThemes(): void
     {
         if ($this->projectData->hasThemes()) {
-            foreach ($this->projectData->getThemes() as $name => $value) {
-                $package = $this->composer->getRepositoryManager()->findPackage($name, $value['version']);
+            foreach ($this->projectData->getThemes() as $name => $options) {
+                $package = $this->composer->getRepositoryManager()->findPackage($name, $options['version']);
+                if (null !== $package) {
+                    $operation = new InstallOperation($package);
+                    $this->installationManager->install(new InstalledFilesystemRepository(new JsonFile('php://memory')),
+                        $operation);
+                    $this->installationManager->notifyInstalls($this->io);
+
+                    // Dispatch event
+                    $this->composer->getEventDispatcher()
+                        ->dispatchPackageEvent(PackageEvents::POST_PACKAGE_INSTALL, false,
+                            new DefaultPolicy(false, false), new Pool(), new CompositeRepository([]), new Request(),
+                            [$operation], $operation);
+                }
+            }
+        }
+    }
+
+    /**
+     * Install packages
+     *
+     * @return void
+     */
+    public function installPackages(): void
+    {
+        if ($this->projectData->hasPackages()) {
+            foreach ($this->projectData->getPackages() as $name => $options) {
+                $package = $this->composer->getRepositoryManager()->findPackage($name, $options['version']);
                 if (null !== $package) {
                     $operation = new InstallOperation($package);
                     $this->installationManager->install(new InstalledFilesystemRepository(new JsonFile('php://memory')),
