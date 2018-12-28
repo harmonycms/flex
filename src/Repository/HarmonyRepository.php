@@ -7,7 +7,6 @@ use Composer\EventDispatcher\EventDispatcher;
 use Composer\IO\IOInterface;
 use Composer\Repository\ComposerRepository;
 use Composer\Util\RemoteFilesystem;
-use Harmony\Flex\Cache;
 
 /**
  * Class HarmonyRepository
@@ -49,18 +48,6 @@ class HarmonyRepository extends ComposerRepository
                                 EventDispatcher $eventDispatcher = null, RemoteFilesystem $rfs = null)
     {
         parent::__construct(self::$defaultRepositories, $io, $config, $eventDispatcher, $rfs);
-
-        $this->cache = new Cache($io,
-            $config->get('cache-repo-dir') . '/' . preg_replace('{[^a-z0-9.]}i', '-', $this->url), 'a-z0-9.$');
-    }
-
-    /**
-     * @param string      $symfonyRequire
-     * @param IOInterface $io
-     */
-    public function setSymfonyRequire(string $symfonyRequire, IOInterface $io)
-    {
-        $this->cache->setSymfonyRequire($symfonyRequire, $io);
     }
 
     /**
@@ -108,8 +95,6 @@ class HarmonyRepository extends ComposerRepository
             return [];
         }
 
-        $data = parent::fetchFile($filename, $cacheKey, $sha256, $storeLastModifiedTime);
-
-        return \is_array($data) ? $this->cache->removeLegacyTags($data) : $data;
+        return parent::fetchFile($filename, $cacheKey, $sha256, $storeLastModifiedTime);
     }
 }

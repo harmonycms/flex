@@ -40,6 +40,7 @@ use Composer\Plugin\PluginEvents;
 use Composer\Plugin\PluginInterface;
 use Composer\Plugin\PreFileDownloadEvent;
 use Composer\Repository\ComposerRepository as BaseComposerRepository;
+use Composer\Repository\ComposerRepository;
 use Composer\Repository\RepositoryFactory;
 use Composer\Repository\RepositoryManager;
 use Composer\Script\Event;
@@ -48,7 +49,7 @@ use Composer\Util\RemoteFilesystem;
 use Harmony\Flex\Event\UpdateEvent;
 use Harmony\Flex\IO\ConsoleIO;
 use Harmony\Flex\Platform\Handler;
-use Harmony\Flex\Repository\HarmonyRepository;
+use Harmony\Flex\Repository\TruncatedComposerRepository;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Thanks\Thanks;
@@ -183,12 +184,12 @@ class Flex implements PluginInterface, EventSubscriberInterface
             $this->rfs);
         $setRepositories = \Closure::bind(function (RepositoryManager $manager) use (&$symfonyRequire) {
             $manager->repositoryClasses = $this->repositoryClasses;
-            $manager->prependRepository(new HarmonyRepository([], $this->io, $this->config, null, $this->rfs));
+            $manager->setRepositoryClass('composer', TruncatedComposerRepository::class);
             $manager->repositories = $this->repositories;
             $i                     = 0;
             foreach (RepositoryFactory::defaultRepos(null, $this->config, $manager) as $repo) {
                 $manager->repositories[$i ++] = $repo;
-                if ($repo instanceof HarmonyRepository && $symfonyRequire) {
+                if ($repo instanceof TruncatedComposerRepository && $symfonyRequire) {
                     $repo->setSymfonyRequire($symfonyRequire, $this->io);
                 }
             }
@@ -923,7 +924,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
                 continue;
             }
 
-            $repo = new HarmonyRepository($repo, $this->io, $this->config, null, $this->rfs);
+            $repo = new ComposerRepository($repo, $this->io, $this->config, null, $this->rfs);
 
             $repos[] = [$repo];
         }
