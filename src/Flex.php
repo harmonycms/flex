@@ -49,6 +49,7 @@ use Composer\Util\RemoteFilesystem;
 use Harmony\Flex\Event\UpdateEvent;
 use Harmony\Flex\IO\ConsoleIO;
 use Harmony\Flex\Platform\Handler;
+use Harmony\Flex\Repository\HarmonyRepository;
 use Harmony\Flex\Repository\TruncatedComposerRepository;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
@@ -161,6 +162,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
             return;
         }
 
+        // Require dependencies such as classes and functions
         $this->_requireDependencies($composer);
 
         $this->composer = $composer;
@@ -173,6 +175,13 @@ class Flex implements PluginInterface, EventSubscriberInterface
         if ($this->io->isDebug()) {
             $this->io->success('HarmonyFlex plugin initialized successfully');
         }
+
+        // Merge config
+        $this->config->merge([
+            'repositories' => [
+                HarmonyRepository::REPOSITORY_NAME => HarmonyRepository::$defaultRepositories
+            ]
+        ]);
 
         $rfs       = Factory::createRemoteFilesystem($this->io, $this->config);
         $this->rfs = new ParallelDownloader($this->io, $this->config, $rfs->getOptions(), $rfs->isTlsDisabled());
