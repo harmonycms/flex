@@ -8,10 +8,13 @@ use Composer\DependencyResolver\DefaultPolicy;
 use Composer\DependencyResolver\Operation\InstallOperation;
 use Composer\DependencyResolver\Pool;
 use Composer\DependencyResolver\Request;
+use Composer\Factory;
 use Composer\Installer\InstallationManager;
 use Composer\Installer\PackageEvents;
 use Composer\IO\IOInterface;
 use Composer\Json\JsonFile;
+use Composer\Json\JsonManipulator;
+use Composer\Package\Locker;
 use Composer\Repository\CompositeRepository;
 use Composer\Repository\InstalledFilesystemRepository;
 use Harmony\Flex\Configurator;
@@ -205,6 +208,7 @@ class Project
      * Install packages
      *
      * @return void
+     * @throws \Exception
      */
     public function installPackages(): void
     {
@@ -212,6 +216,9 @@ class Project
             foreach ($this->projectData->getPackages() as $name => $options) {
                 $package = $this->composer->getRepositoryManager()->findPackage($name, $options['version']);
                 if (null !== $package) {
+                    // Update composer.json file
+                    $this->updateComposer($name, $package->getPrettyVersion());
+
                     $operation = new InstallOperation($package);
                     $this->installationManager->install(new InstalledFilesystemRepository(new JsonFile('php://memory')),
                         $operation);
@@ -318,5 +325,37 @@ class Project
         }
 
         return $this->activated = false;
+    }
+
+    /**
+     * @param string $name
+     * @param string $version
+     *
+     * @throws \Exception
+     */
+    protected function updateComposer(string $name, string $version)
+    {
+        $json        = new JsonFile(Factory::getComposerFile());
+        $contents    = file_get_contents($json->getPath());
+        $manipulator = new JsonManipulator($contents);
+        $manipulator->addLink('require', $name, $version, true);
+        file_put_contents($json->getPath(), $manipulator->getContents());
+
+        $this->updateComposerLock();
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function updateComposerLock()
+    {
+        $lock                     = substr(Factory::getComposerFile(), 0, - 4) . 'lock';
+        $composerJson             = file_get_contents(Factory::getComposerFile());
+        $lockFile                 = new JsonFile($lock, null, $this->io);
+        $locker                   = new Locker($this->io, $lockFile, $this->composer->getRepositoryManager(),
+            $this->composer->getInstallationManager(), $composerJson);
+        $lockData                 = $locker->getLockData();
+        $lockData['content-hash'] = Locker::getContentHash($composerJson);
+        $lockFile->write($lockData);
     }
 }
