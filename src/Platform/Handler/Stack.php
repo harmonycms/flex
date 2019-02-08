@@ -7,7 +7,7 @@ use Composer\Factory;
 use Composer\IO\IOInterface;
 use Composer\Json\JsonFile;
 use Composer\Util\RemoteFilesystem;
-use Harmony\Sdk;
+use Harmony\Sdk\HttpClient;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
@@ -22,7 +22,7 @@ class Stack
     const REPOSITORY = 'https://git.harmonycms.net';
     const ENDPOINT   = 'https://raw.githubusercontent.com/harmonycms/stacks/master';
 
-    /** @var Sdk\Client $client */
+    /** @var HttpClient\Client $client */
     protected $client;
 
     /** @var IOInterface|SymfonyStyle $io */
@@ -40,11 +40,11 @@ class Stack
     /**
      * Stack constructor.
      *
-     * @param IOInterface $io
-     * @param Sdk\Client  $client
-     * @param Composer    $composer
+     * @param IOInterface       $io
+     * @param HttpClient\Client $client
+     * @param Composer          $composer
      */
-    public function __construct(IOInterface $io, Sdk\Client $client, Composer $composer)
+    public function __construct(IOInterface $io, HttpClient\Client $client, Composer $composer)
     {
         $this->client   = $client;
         $this->io       = $io;

@@ -9,7 +9,7 @@ use Composer\Json\JsonFile;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
 use Harmony\Flex\Repository\HarmonyRepository;
-use Harmony\Sdk;
+use Harmony\Sdk\HttpClient;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Exception\IOException;
 
@@ -54,13 +54,13 @@ class Harmony
     }
 
     /**
-     * @param Sdk\Client $client
+     * @param HttpClient\Client $client
      *
      * @return string
      * @throws \Http\Client\Exception
      * @throws \Exception
      */
-    public function askOAuthInteractively(Sdk\Client $client = null)
+    public function askOAuthInteractively(HttpClient\Client $client = null)
     {
         $this->io->writeln("Please provide your HarmonyCMS API OAuth2 Access Token.");
 
@@ -111,10 +111,10 @@ class Harmony
                 return $token;
             }
 
-            // Sdk\Client instance, used when creating a new project to interact with HarmonyCMS API
+            // HttpClient\Client instance, used when creating a new project to interact with HarmonyCMS API
             if (!empty($token) && null !== $client) {
-                /** @var Sdk\Receiver\Events $events */
-                $events      = $client->getReceiver(Sdk\Client::RECEIVER_EVENTS);
+                /** @var HttpClient\Receiver\Events $events */
+                $events      = $client->getReceiver(HttpClient\Client::RECEIVER_EVENTS);
                 $tokenStatus = $events->tokenStatus($token);
                 if (isset($tokenStatus['status']) && 'authenticated' === $tokenStatus['status']) {
                     // Set authentication

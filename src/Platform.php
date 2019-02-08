@@ -10,7 +10,7 @@ use Harmony\Flex\IO\ConsoleIO;
 use Harmony\Flex\Platform\Handler\Project;
 use Harmony\Flex\Repository\HarmonyRepository;
 use Harmony\Flex\Util\Harmony as HarmonyUtil;
-use Harmony\Sdk;
+use Harmony\Sdk\HttpClient;
 
 /**
  * Class Platform
@@ -26,7 +26,7 @@ class Platform
     /** @var Composer $composer */
     protected $composer;
 
-    /** @var Sdk\Client $client */
+    /** @var HttpClient\Client $client */
     protected $client;
 
     /** @var Configurator $configurator */
@@ -56,7 +56,7 @@ class Platform
     {
         $this->composer     = $composer;
         $this->io           = $io;
-        $this->client       = new Sdk\Client();
+        $this->client       = new HttpClient\Client();
         $this->configurator = $configurator;
         $this->executor     = $executor;
     }
@@ -70,18 +70,18 @@ class Platform
      */
     public function checkConnectivity(): bool
     {
-        /** @var Sdk\Receiver\Events $events */
-        $events = $this->client->getReceiver(Sdk\Client::RECEIVER_EVENTS);
+        /** @var HttpClient\Receiver\Events $events */
+        $events = $this->client->getReceiver(HttpClient\Client::RECEIVER_EVENTS);
         $ping   = $events->ping();
         // 1. Check HarmonyCMS API connectivity
         if (true === isset($ping['ping']) && 'pong' === $ping['ping']) {
             if ($this->io->isDebug()) {
-                $this->io->success('Connectivity to ' . Sdk\Client::API_URL . ' successful!');
+                $this->io->success('Connectivity to ' . HttpClient\Client::API_URL . ' successful!');
             }
 
             return $this->activated = true;
         }
-        $this->io->error('Error connecting to HarmonyCMS API, unreachable host: ' . Sdk\Client::API_URL . '!');
+        $this->io->error('Error connecting to HarmonyCMS API, unreachable host: ' . HttpClient\Client::API_URL . '!');
 
         return $this->activated = false;
     }
@@ -105,14 +105,14 @@ class Platform
 
             $token = $jsonConfigSource->getConfigSetting('harmony-oauth.' . HarmonyRepository::REPOSITORY_NAME);
             if (null !== $token) {
-                /** @var Sdk\Receiver\Events $events */
-                $events      = $this->client->getReceiver(Sdk\Client::RECEIVER_EVENTS);
+                /** @var HttpClient\Receiver\Events $events */
+                $events      = $this->client->getReceiver(HttpClient\Client::RECEIVER_EVENTS);
                 $tokenStatus = $events->tokenStatus($token);
                 if (isset($tokenStatus['status']) && 'authenticated' === $tokenStatus['status']) {
                     $this->client->setBearerToken($token);
 
-                    /** @var Sdk\Receiver\Users $users */
-                    $users = $this->client->getReceiver(Sdk\Client::RECEIVER_USERS);
+                    /** @var HttpClient\Receiver\Users $users */
+                    $users = $this->client->getReceiver(HttpClient\Client::RECEIVER_USERS);
                     $this->io->success('Welcome back "' . $users->getUser()['username'] . '"!');
 
                     return $token;
