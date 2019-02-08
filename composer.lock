@@ -247,12 +247,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/harmonycms/sdk.git",
-                "reference": "992b76df054fae8a3a6ad1fd0a1ddcd62c167818"
+                "reference": "98c4d2c01c12f9b3494a1049956bec8ce8709eeb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/harmonycms/sdk/zipball/992b76df054fae8a3a6ad1fd0a1ddcd62c167818",
-                "reference": "992b76df054fae8a3a6ad1fd0a1ddcd62c167818",
+                "url": "https://api.github.com/repos/harmonycms/sdk/zipball/98c4d2c01c12f9b3494a1049956bec8ce8709eeb",
+                "reference": "98c4d2c01c12f9b3494a1049956bec8ce8709eeb",
                 "shasum": ""
             },
             "require": {
@@ -288,7 +288,7 @@
                 "harmony-cms",
                 "sdk"
             ],
-            "time": "2019-02-08T18:22:19+00:00"
+            "time": "2019-02-08T18:58:09+00:00"
         },
         {
             "name": "nyholm/psr7",
