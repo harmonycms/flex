@@ -22,7 +22,7 @@ use Harmony\Flex\Platform\Model\Project as ProjectModel;
 use Harmony\Flex\Platform\Model\ProjectDatabase;
 use Harmony\Flex\ScriptExecutor;
 use Harmony\Flex\Serializer\Normalizer\ProjectNormalizer;
-use Harmony\Sdk;
+use Harmony\Sdk\HttpClient;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
@@ -39,7 +39,7 @@ use Symfony\Component\Serializer\Serializer;
 class Project
 {
 
-    /** @var Sdk\Client $client */
+    /** @var HttpClient\Client $client */
     protected $client;
 
     /** @var IOInterface|SymfonyStyle $io */
@@ -80,16 +80,16 @@ class Project
     /**
      * Project constructor.
      *
-     * @param IOInterface    $io
-     * @param Sdk\Client     $client
-     * @param Composer       $composer
-     * @param Configurator   $configurator
-     * @param Config         $config
-     * @param ScriptExecutor $executor
+     * @param IOInterface       $io
+     * @param HttpClient\Client $client
+     * @param Composer          $composer
+     * @param Configurator      $configurator
+     * @param Config            $config
+     * @param ScriptExecutor    $executor
      *
      * @throws \Http\Client\Exception
      */
-    public function __construct(IOInterface $io, Sdk\Client $client, Composer $composer, Configurator $configurator,
+    public function __construct(IOInterface $io, HttpClient\Client $client, Composer $composer, Configurator $configurator,
                                 Config $config, ScriptExecutor $executor)
     {
         $this->client              = $client;
@@ -229,6 +229,11 @@ class Project
                         ->dispatchPackageEvent(PackageEvents::POST_PACKAGE_INSTALL, false,
                             new DefaultPolicy(false, false), new Pool(), new CompositeRepository([]), new Request(),
                             [$operation], $operation);
+
+//                    $this->composer->getAutoloadGenerator()
+//                        ->dump($this->composer->getConfig(),
+//                            $this->composer->getRepositoryManager()->getLocalRepository(), $package,
+//                            $this->installationManager, 'composer');
                 }
             }
         }
@@ -270,8 +275,8 @@ class Project
             $data      = (new JsonDecode(true))->decode($file->getContents(), JsonEncoder::FORMAT);
             $projectId = key((array)$data);
 
-            /** @var Sdk\Receiver\Projects $projects */
-            $projects    = $this->client->getReceiver(Sdk\Client::RECEIVER_PROJECTS);
+            /** @var HttpClient\Receiver\Projects $projects */
+            $projects    = $this->client->getReceiver(HttpClient\Client::RECEIVER_PROJECTS);
             $projectData = $projects->getProject($projectId);
 
             if (null === $projectId || false === is_array($projectData) ||
@@ -295,8 +300,8 @@ class Project
             $retries = 3;
             $step    = 1;
             while ($retries --) {
-                /** @var Sdk\Receiver\Projects $projects */
-                $projects    = $this->client->getReceiver(Sdk\Client::RECEIVER_PROJECTS);
+                /** @var HttpClient\Receiver\Projects $projects */
+                $projects    = $this->client->getReceiver(HttpClient\Client::RECEIVER_PROJECTS);
                 $projectData = $projects->getProject($projectId);
                 if (is_array($projectData) || isset($projectData['code']) && 400 !== $projectData['code']) {
                     $this->projectData = $this->serializer->deserialize(json_encode($projectData), ProjectModel::class,
