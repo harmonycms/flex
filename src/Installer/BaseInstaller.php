@@ -4,7 +4,6 @@ namespace Harmony\Flex\Installer;
 
 use Composer\Composer;
 use Composer\Package\PackageInterface;
-use Harmony\Flex\Configurator;
 use Harmony\Flex\IO\ConsoleIO;
 
 /**
@@ -27,8 +26,6 @@ abstract class BaseInstaller
     /** @var ConsoleIO $io */
     protected $io;
 
-    /** @var Configurator $configurator */
-    protected $configurator;
 
     /**
      * BaseInstaller constructor.
@@ -42,7 +39,6 @@ abstract class BaseInstaller
         $this->package      = $package;
         $this->composer     = $composer;
         $this->io           = $io;
-        $this->configurator = new Configurator($composer);
     }
 
     /**
