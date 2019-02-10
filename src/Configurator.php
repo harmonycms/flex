@@ -15,7 +15,9 @@ use Composer\Composer;
 use Composer\IO\IOInterface;
 use Harmony\Flex\Configurator\AbstractConfigurator;
 use Symfony\Component\Yaml\Yaml;
+use Symfony\Flex\Configurator as SymfonyConfigurator;
 use Symfony\Flex\Options;
+use Symfony\Flex\Recipe;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
@@ -61,15 +63,16 @@ class Configurator
         $this->options  = $options;
         // ordered list of configurators
         $this->configurators     = [
-            'bundles'           => Configurator\BundlesConfigurator::class,
-            'copy-from-recipe'  => Configurator\CopyFromRecipeConfigurator::class,
-            'copy-from-package' => Configurator\CopyFromPackageConfigurator::class,
-            'env'               => Configurator\EnvConfigurator::class,
-            'container'         => Configurator\ContainerConfigurator::class,
-            'makefile'          => Configurator\MakefileConfigurator::class,
-            'composer-scripts'  => Configurator\ComposerScriptsConfigurator::class,
-            'gitignore'         => Configurator\GitignoreConfigurator::class,
-            'env-project'       => Configurator\EnvProjectConfigurator::class
+            'bundles'           => SymfonyConfigurator\BundlesConfigurator::class,
+            'copy-from-recipe'  => SymfonyConfigurator\CopyFromRecipeConfigurator::class,
+            'copy-from-package' => SymfonyConfigurator\CopyFromPackageConfigurator::class,
+            'env'               => SymfonyConfigurator\EnvConfigurator::class,
+            'container'         => SymfonyConfigurator\ContainerConfigurator::class,
+            'makefile'          => SymfonyConfigurator\MakefileConfigurator::class,
+            'composer-scripts'  => SymfonyConfigurator\ComposerScriptsConfigurator::class,
+            'gitignore'         => SymfonyConfigurator\GitignoreConfigurator::class,
+            'env-project'       => Configurator\EnvProjectConfigurator::class,
+            'themes'            => Configurator\ThemesConfigurator::class
         ];
         $this->configDir         = dirname($composer->getConfig()->get('vendor-dir'));
         $this->defaultConfigFile = $this->configDir . '/config/packages/' . self::HARMONY_CONFIG_YAML;
