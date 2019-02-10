@@ -11,8 +11,6 @@
 
 namespace Harmony\Flex\Configurator;
 
-use Harmony\Flex\Recipe;
-
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  */
