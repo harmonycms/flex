@@ -9,86 +9,53 @@
  * file that was distributed with this source code.
  */
 
-namespace Harmony\Flex\Command;
+namespace Symfony\Flex\Command;
 
 use Composer\Command\BaseCommand;
 use Composer\DependencyResolver\Operation\InstallOperation;
 use Composer\Factory;
-use Composer\Repository\RepositoryManager;
-use Harmony\Flex\Event\UpdateEvent;
-use Harmony\Flex\Flex;
-use Harmony\Flex\Lock;
+use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Flex\Event\UpdateEvent;
+use Symfony\Flex\Lock;
 
-/**
- * Class SyncRecipesCommand
- *
- * @package Harmony\Flex\Command
- */
 class SyncRecipesCommand extends BaseCommand
 {
-
-    /** @var Flex $flex */
     private $flex;
-
     private $rootDir;
 
-    /**
-     * SyncRecipesCommand constructor.
-     *
-     * @param Flex   $flex cannot be type-hinted
-     * @param string $rootDir
-     */
-    public function __construct($flex, string $rootDir)
+    public function __construct(/* cannot be type-hinted */ $flex, string $rootDir)
     {
-        $this->flex    = $flex;
+        $this->flex = $flex;
         $this->rootDir = $rootDir;
 
         parent::__construct();
     }
 
-    /**
-     * Configures the current command.
-     */
     protected function configure()
     {
         $this->setName('symfony:sync-recipes')
             ->setAliases(['sync-recipes', 'fix-recipes'])
             ->setDescription('Installs or reinstalls recipes for already installed packages.')
-            ->addOption('force', null, InputOption::VALUE_NONE,
-                'Ignore the "symfony.lock" file and overwrite existing files');
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Ignore the "symfony.lock" file and overwrite existing files')
+        ;
     }
 
-    /**
-     * Executes the current command.
-     * This method is not abstract because you can use this class
-     * as a concrete class. In this case, instead of defining the
-     * execute() method, you set the code to execute by passing
-     * a Closure to the setCode() method.
-     *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
-     * @return int|null null or 0 if everything went fine, or an error code
-     * @throws \Exception
-     * @see setCode()
-     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $win   = '\\' === \DIRECTORY_SEPARATOR;
+        $win = '\\' === \DIRECTORY_SEPARATOR;
         $force = $input->getOption('force');
 
         if ($force && !@is_executable(strtok(exec($win ? 'where git' : 'command -v git'), PHP_EOL))) {
             throw new RuntimeException('Cannot run "sync-recipes --force": git not found.');
         }
 
-        $symfonyLock = new Lock(getenv('SYMFONY_LOCKFILE') ?:
-            str_replace('composer.json', 'symfony.lock', Factory::getComposerFile()));
-        $composer    = $this->getComposer();
-        $locker      = $composer->getLocker();
-        $lockData    = $locker->getLockData();
+        $symfonyLock = new Lock(getenv('SYMFONY_LOCKFILE') ?: str_replace('composer.json', 'symfony.lock', Factory::getComposerFile()));
+        $composer = $this->getComposer();
+        $locker = $composer->getLocker();
+        $lockData = $locker->getLockData();
 
         $packages = [];
         foreach ($lockData['packages'] as $pkg) {
@@ -103,18 +70,17 @@ class SyncRecipesCommand extends BaseCommand
         }
 
         if (!$packages) {
-            return null;
+            return;
         }
 
         $composer = $this->getComposer();
-        /** @var RepositoryManager $installedRepo */
         $installedRepo = $composer->getRepositoryManager()->getLocalRepository();
-        $io            = $this->getIO();
+        $io = $this->getIO();
 
         $operations = [];
         foreach ($packages as $package) {
             if (null === $pkg = $installedRepo->findPackage($package, '*')) {
-                $io->writeError(sprintf('<error>Package %s is not installed</error>', $package));
+                $io->writeError(sprintf('<error>Package %s is not installed</>', $package));
 
                 return 1;
             }
@@ -122,14 +88,12 @@ class SyncRecipesCommand extends BaseCommand
             $operations[] = new InstallOperation($pkg);
         }
 
-        if ($createEnvLocal = $force && file_exists($this->rootDir . '/.env') &&
-            file_exists($this->rootDir . '/.env.dist') && !file_exists($this->rootDir . '/.env.local')) {
-            rename($this->rootDir . '/.env', $this->rootDir . '/.env.local');
+        if ($createEnvLocal = $force && file_exists($this->rootDir.'/.env') && file_exists($this->rootDir.'/.env.dist') && !file_exists($this->rootDir.'/.env.local')) {
+            rename($this->rootDir.'/.env', $this->rootDir.'/.env.local');
             $pipes = [];
-            proc_close(proc_open(sprintf('git mv .env.dist .env > %s 2>&1 || %s .env.dist .env',
-                $win ? 'NUL' : '/dev/null', $win ? 'rename' : 'mv'), $pipes, $pipes, $this->rootDir));
-            if (file_exists($this->rootDir . '/phpunit.xml.dist')) {
-                touch($this->rootDir . '/.env.test');
+            proc_close(proc_open(sprintf('git mv .env.dist .env > %s 2>&1 || %s .env.dist .env', $win ? 'NUL' : '/dev/null', $win ? 'rename' : 'mv'), $pipes, $pipes, $this->rootDir));
+            if (file_exists($this->rootDir.'/phpunit.xml.dist')) {
+                touch($this->rootDir.'/.env.test');
             }
         }
 
@@ -146,7 +110,7 @@ class SyncRecipesCommand extends BaseCommand
                 '',
                 '    Not all of the changes will be relevant to your app: you now',
                 '    need to selectively add or revert them using e.g. a combination',
-                '    of <comment>git add -p</comment> and <comment>git checkout -p</comment>',
+                '    of <comment>git add -p</> and <comment>git checkout -p</>',
                 '',
             ];
 
@@ -156,20 +120,18 @@ class SyncRecipesCommand extends BaseCommand
                 $output[] = '';
             }
 
-            $output[] = '  * Use <comment>git checkout .</comment> to revert the changes.';
+            $output[] = '  * Use <comment>git checkout .</> to revert the changes.';
             $output[] = '';
 
             if ($createEnvLocal) {
                 $output[] = '    To revert the changes made to .env files, run';
-                $output[]
-                          = sprintf('    <comment>git mv %s.env %1$s.env.dist</comment> && <comment>%s %1$s.env.local %1$s.env</comment>',
-                    '.' !== $this->rootDir ? $this->rootDir . '/' : '', $win ? 'rename' : 'mv');
+                $output[] = sprintf('    <comment>git mv %s.env %1$s.env.dist</> && <comment>%s %1$s.env.local %1$s.env</>', '.' !== $this->rootDir ? $this->rootDir.'/' : '', $win ? 'rename' : 'mv');
                 $output[] = '';
             }
 
-            $output[] = '    New (untracked) files can be inspected using <comment>git clean --dry-run</comment>';
-            $output[] = '    Add the new files you want to keep using <comment>git add</comment>';
-            $output[] = '    then delete the rest using <comment>git clean --force</comment>';
+            $output[] = '    New (untracked) files can be inspected using <comment>git clean --dry-run</>';
+            $output[] = '    Add the new files you want to keep using <comment>git add</>';
+            $output[] = '    then delete the rest using <comment>git clean --force</>';
             $output[] = '';
 
             $io->write($output);

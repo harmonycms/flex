@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Harmony\Flex;
+namespace Symfony\Flex;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>

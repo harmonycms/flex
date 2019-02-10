@@ -9,9 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Harmony\Flex\Configurator;
+namespace Symfony\Flex\Configurator;
 
-use Harmony\Flex\Recipe;
+use Harmony\Flex\Configurator\AbstractConfigurator;
 use LogicException;
 
 /**

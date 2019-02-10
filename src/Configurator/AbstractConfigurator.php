@@ -13,9 +13,9 @@ namespace Harmony\Flex\Configurator;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
-use Harmony\Flex\Options;
-use Harmony\Flex\Path;
-use Harmony\Flex\Recipe;
+use Symfony\Flex\Path;
+use Symfony\Flex\Recipe;
+use Symfony\Flex\Options;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>

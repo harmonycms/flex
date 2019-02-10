@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Harmony\Flex\Command;
+namespace Symfony\Flex\Command;
 
 use Harmony\Flex\Flex;
 use Symfony\Component\Console\Command\Command;

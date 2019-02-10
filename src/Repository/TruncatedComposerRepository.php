@@ -16,7 +16,7 @@ use Composer\EventDispatcher\EventDispatcher;
 use Composer\IO\IOInterface;
 use Composer\Repository\ComposerRepository as BaseComposerRepository;
 use Composer\Util\RemoteFilesystem;
-use Harmony\Flex\Cache;
+use Symfony\Flex\Cache;
 
 /**
  * Class TruncatedComposerRepository

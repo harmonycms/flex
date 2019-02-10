@@ -9,58 +9,40 @@
  * file that was distributed with this source code.
  */
 
-namespace Harmony\Flex\Configurator;
+namespace Symfony\Flex\Configurator;
 
-use Harmony\Flex\Recipe;
+use Harmony\Flex\Configurator\AbstractConfigurator;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  */
 class EnvConfigurator extends AbstractConfigurator
 {
-
-    /**
-     * @param Recipe $recipe
-     * @param        $vars
-     * @param array  $options
-     *
-     * @throws \Exception
-     */
     public function configure($recipe, $vars, array $options = [])
     {
         $this->write('Added environment variable defaults');
 
-        $this->configureEnvDist($recipe, $vars);
-        if (!file_exists($this->options->get('root-dir') . '/.env.test')) {
-            $this->configurePhpUnit($recipe, $vars);
+        $this->configureEnvDist($recipe, $vars, $options['force'] ?? false);
+        if (!file_exists($this->options->get('root-dir').'/.env.test')) {
+            $this->configurePhpUnit($recipe, $vars, $options['force'] ?? false);
         }
     }
 
-    /**
-     * @param Recipe $recipe
-     * @param        $vars
-     */
     public function unconfigure($recipe, $vars)
     {
         $this->unconfigureEnvFiles($recipe, $vars);
         $this->unconfigurePhpUnit($recipe, $vars);
     }
 
-    /**
-     * @param Recipe $recipe
-     * @param        $vars
-     *
-     * @throws \Exception
-     */
-    private function configureEnvDist(Recipe $recipe, $vars)
+    private function configureEnvDist(Recipe $recipe, $vars, bool $update)
     {
         foreach (['.env.dist', '.env'] as $file) {
-            $env = $this->options->get('root-dir') . '/' . $file;
+            $env = $this->options->get('root-dir').'/'.$file;
             if (!is_file($env)) {
                 continue;
             }
 
-            if ($this->isFileMarked($recipe, $env)) {
+            if (!$update && $this->isFileMarked($recipe, $env)) {
                 continue;
             }
 
@@ -68,37 +50,34 @@ class EnvConfigurator extends AbstractConfigurator
             foreach ($vars as $key => $value) {
                 $value = $this->evaluateValue($value);
                 if ('#' === $key[0] && is_numeric(substr($key, 1))) {
-                    $data .= '# ' . $value . "\n";
+                    $data .= '# '.$value."\n";
 
                     continue;
                 }
 
                 $value = $this->options->expandTargetDir($value);
                 if (false !== strpbrk($value, " \t\n&!\"")) {
-                    $value = '"' . str_replace(['\\', '"', "\t", "\n"], ['\\\\', '\\"', '\t', '\n'], $value) . '"';
+                    $value = '"'.str_replace(['\\', '"', "\t", "\n"], ['\\\\', '\\"', '\t', '\n'], $value).'"';
                 }
                 $data .= "$key=$value\n";
             }
             $data = $this->markData($recipe, $data);
-            file_put_contents($env, $data, FILE_APPEND);
+
+            if (!$this->updateData($env, $data)) {
+                file_put_contents($env, $data, FILE_APPEND);
+            }
         }
     }
 
-    /**
-     * @param Recipe $recipe
-     * @param        $vars
-     *
-     * @throws \Exception
-     */
-    private function configurePhpUnit(Recipe $recipe, $vars)
+    private function configurePhpUnit(Recipe $recipe, $vars, bool $update)
     {
         foreach (['phpunit.xml.dist', 'phpunit.xml'] as $file) {
-            $phpunit = $this->options->get('root-dir') . '/' . $file;
+            $phpunit = $this->options->get('root-dir').'/'.$file;
             if (!is_file($phpunit)) {
                 continue;
             }
 
-            if ($this->isFileXmlMarked($recipe, $phpunit)) {
+            if (!$update && $this->isFileXmlMarked($recipe, $phpunit)) {
                 continue;
             }
 
@@ -107,45 +86,42 @@ class EnvConfigurator extends AbstractConfigurator
                 $value = $this->evaluateValue($value);
                 if ('#' === $key[0]) {
                     if (is_numeric(substr($key, 1))) {
-                        $doc  = new \DOMDocument();
-                        $data .= '        ' . $doc->saveXML($doc->createComment(' ' . $value . ' ')) . "\n";
+                        $doc = new \DOMDocument();
+                        $data .= '        '.$doc->saveXML($doc->createComment(' '.$value.' '))."\n";
                     } else {
-                        $value    = $this->options->expandTargetDir($value);
-                        $doc      = new \DOMDocument();
+                        $value = $this->options->expandTargetDir($value);
+                        $doc = new \DOMDocument();
                         $fragment = $doc->createElement('env');
                         $fragment->setAttribute('name', substr($key, 1));
                         $fragment->setAttribute('value', $value);
-                        $data .= '        ' . str_replace(['<', '/>'], ['<!-- ', ' -->'], $doc->saveXML($fragment)) .
-                            "\n";
+                        $data .= '        '.str_replace(['<', '/>'], ['<!-- ', ' -->'], $doc->saveXML($fragment))."\n";
                     }
                 } else {
-                    $value    = $this->options->expandTargetDir($value);
-                    $doc      = new \DOMDocument();
+                    $value = $this->options->expandTargetDir($value);
+                    $doc = new \DOMDocument();
                     $fragment = $doc->createElement('env');
                     $fragment->setAttribute('name', $key);
                     $fragment->setAttribute('value', $value);
-                    $data .= '        ' . $doc->saveXML($fragment) . "\n";
+                    $data .= '        '.$doc->saveXML($fragment)."\n";
                 }
             }
             $data = $this->markXmlData($recipe, $data);
-            file_put_contents($phpunit, preg_replace('{^(\s+</php>)}m', $data . '$1', file_get_contents($phpunit)));
+
+            if (!$this->updateData($phpunit, $data)) {
+                file_put_contents($phpunit, preg_replace('{^(\s+</php>)}m', $data.'$1', file_get_contents($phpunit)));
+            }
         }
     }
 
-    /**
-     * @param Recipe $recipe
-     * @param        $vars
-     */
     private function unconfigureEnvFiles(Recipe $recipe, $vars)
     {
         foreach (['.env', '.env.dist'] as $file) {
-            $env = $this->options->get('root-dir') . '/' . $file;
+            $env = $this->options->get('root-dir').'/'.$file;
             if (!file_exists($env)) {
                 continue;
             }
 
-            $contents = preg_replace(sprintf('{%s*###> %s ###.*###< %s ###%s+}s', "\n", $recipe->getName(),
-                $recipe->getName(), "\n"), "\n", file_get_contents($env), - 1, $count);
+            $contents = preg_replace(sprintf('{%s*###> %s ###.*###< %s ###%s+}s', "\n", $recipe->getName(), $recipe->getName(), "\n"), "\n", file_get_contents($env), -1, $count);
             if (!$count) {
                 continue;
             }
@@ -155,20 +131,15 @@ class EnvConfigurator extends AbstractConfigurator
         }
     }
 
-    /**
-     * @param Recipe $recipe
-     * @param        $vars
-     */
     private function unconfigurePhpUnit(Recipe $recipe, $vars)
     {
         foreach (['phpunit.xml.dist', 'phpunit.xml'] as $file) {
-            $phpunit = $this->options->get('root-dir') . '/' . $file;
+            $phpunit = $this->options->get('root-dir').'/'.$file;
             if (!is_file($phpunit)) {
                 continue;
             }
 
-            $contents = preg_replace(sprintf('{%s*\s+<!-- ###\+ %s ### -->.*<!-- ###- %s ### -->%s+}s', "\n",
-                $recipe->getName(), $recipe->getName(), "\n"), "\n", file_get_contents($phpunit), - 1, $count);
+            $contents = preg_replace(sprintf('{%s*\s+<!-- ###\+ %s ### -->.*<!-- ###- %s ### -->%s+}s', "\n", $recipe->getName(), $recipe->getName(), "\n"), "\n", file_get_contents($phpunit), -1, $count);
             if (!$count) {
                 continue;
             }
@@ -178,12 +149,6 @@ class EnvConfigurator extends AbstractConfigurator
         }
     }
 
-    /**
-     * @param $value
-     *
-     * @return string
-     * @throws \Exception
-     */
     private function evaluateValue($value)
     {
         if ('%generate(secret)%' === $value) {
@@ -196,12 +161,6 @@ class EnvConfigurator extends AbstractConfigurator
         return $value;
     }
 
-    /**
-     * @param int $length
-     *
-     * @return string
-     * @throws \Exception
-     */
     private function generateRandomBytes($length = 16)
     {
         return bin2hex(random_bytes($length));

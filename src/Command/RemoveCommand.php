@@ -9,10 +9,10 @@
  * file that was distributed with this source code.
  */
 
-namespace Harmony\Flex\Command;
+namespace Symfony\Flex\Command;
 
 use Composer\Command\RemoveCommand as BaseRemoveCommand;
-use Harmony\Flex\PackageResolver;
+use Symfony\Flex\PackageResolver;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 

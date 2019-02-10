@@ -9,7 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Harmony\Flex\Configurator;
+namespace Symfony\Flex\Configurator;
+
+use Harmony\Flex\Configurator\AbstractConfigurator;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>

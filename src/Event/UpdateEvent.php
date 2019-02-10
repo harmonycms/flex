@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Harmony\Flex\Event;
+namespace Symfony\Flex\Event;
 
 use Composer\Script\Event;
 

@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Harmony\Flex\Unpack;
+namespace Symfony\Flex\Unpack;
 
 use Composer\Package\PackageInterface;
 

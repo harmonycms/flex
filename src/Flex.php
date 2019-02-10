@@ -46,13 +46,20 @@ use Composer\Repository\RepositoryManager;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 use Composer\Util\RemoteFilesystem;
-use Harmony\Flex\Event\UpdateEvent;
 use Harmony\Flex\IO\ConsoleIO;
 use Harmony\Flex\Platform\Handler;
 use Harmony\Flex\Repository\HarmonyRepository;
 use Harmony\Flex\Repository\TruncatedComposerRepository;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Flex\Command;
+use Symfony\Flex\Event\UpdateEvent;
+use Symfony\Flex\Lock;
+use Symfony\Flex\Options;
+use Symfony\Flex\PackageResolver;
+use Symfony\Flex\Recipe;
+use Symfony\Flex\ScriptExecutor;
+use Symfony\Flex\SymfonyBundle;
 use Symfony\Thanks\Thanks;
 
 /**
@@ -330,6 +337,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
             $app->add(new Command\UnpackCommand($resolver));
             $app->add(new Command\SyncRecipesCommand($this, $this->options->get('root-dir')));
             $app->add(new Command\GenerateIdCommand($this));
+            $app->add(new Command\DumpEnvCommand($this->config, $this->options));
 
             break;
         }

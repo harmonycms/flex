@@ -20,7 +20,6 @@ use Composer\Repository\InstalledFilesystemRepository;
 use Harmony\Flex\Configurator;
 use Harmony\Flex\Platform\Model\Project as ProjectModel;
 use Harmony\Flex\Platform\Model\ProjectDatabase;
-use Harmony\Flex\ScriptExecutor;
 use Harmony\Flex\Serializer\Normalizer\ProjectNormalizer;
 use Harmony\Sdk\HttpClient;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -30,6 +29,7 @@ use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Serializer;
+use Symfony\Flex\ScriptExecutor;
 
 /**
  * Class Project

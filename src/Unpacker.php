@@ -9,14 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Harmony\Flex;
+namespace Symfony\Flex;
 
 use Composer\Composer;
 use Composer\Factory;
 use Composer\Json\JsonFile;
 use Composer\Json\JsonManipulator;
-use Harmony\Flex\Unpack\Operation;
-use Harmony\Flex\Unpack\Result;
+use Symfony\Flex\Unpack\Operation;
+use Symfony\Flex\Unpack\Result;
 
 class Unpacker
 {

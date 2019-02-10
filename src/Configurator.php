@@ -15,6 +15,7 @@ use Composer\Composer;
 use Composer\IO\IOInterface;
 use Harmony\Flex\Configurator\AbstractConfigurator;
 use Symfony\Component\Yaml\Yaml;
+use Symfony\Flex\Options;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
