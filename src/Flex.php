@@ -853,6 +853,19 @@ class Flex implements PluginInterface, EventSubscriberInterface
                     $recipes[$name]     = new Recipe($package, $name, $job, $manifest);
                 }
             }
+
+            if ($noRecipe && 'harmony-theme' === $package->getType()) {
+                $manifest = [];
+                $theme    = new HarmonyTheme($this->composer, $package, $job);
+                $envs     = \in_array($name, $devPackages) ? ['dev', 'test'] : ['all'];
+                foreach ($theme->getClassNames() as $class) {
+                    $manifest['manifest']['themes'][$class] = $envs;
+                }
+                if ($manifest) {
+                    $manifest['origin'] = sprintf('%s:%s@auto-generated recipe', $name, $package->getPrettyVersion());
+                    $recipes[$name]     = new Recipe($package, $name, $job, $manifest);
+                }
+            }
         }
         $this->operations = [];
 
