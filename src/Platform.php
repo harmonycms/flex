@@ -11,6 +11,7 @@ use Harmony\Flex\Platform\Handler\Project;
 use Harmony\Flex\Repository\HarmonyRepository;
 use Harmony\Flex\Util\Harmony as HarmonyUtil;
 use Harmony\Sdk\HttpClient;
+use Symfony\Flex\Configurator;
 use Symfony\Flex\ScriptExecutor;
 
 /**

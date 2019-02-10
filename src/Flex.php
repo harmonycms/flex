@@ -53,6 +53,7 @@ use Harmony\Flex\Repository\TruncatedComposerRepository;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Flex\Command;
+use Symfony\Flex\Configurator;
 use Symfony\Flex\Event\UpdateEvent;
 use Symfony\Flex\Lock;
 use Symfony\Flex\Options;
@@ -106,7 +107,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
     /** @var int $displayThanksReminder */
     private $displayThanksReminder = 0;
 
-    /** @var RemoteFilesystem $rfs */
+    /** @var RemoteFilesystem|ParallelDownloader $rfs */
     private $rfs;
 
     /** @var bool $progress */
@@ -238,7 +239,8 @@ class Flex implements PluginInterface, EventSubscriberInterface
         }
 
         // Add installer for custom types
-        $composer->getInstallationManager()->addInstaller(new Installer($this->io, $composer));
+        $composer->getInstallationManager()->addInstaller(new Installer($this->io, $composer, 'library', null, null,
+            $this->configurator));
 
         // Platform
         $this->platform = new Platform($this->composer, $this->io, $this->configurator, $this->executor);
@@ -853,19 +855,6 @@ class Flex implements PluginInterface, EventSubscriberInterface
                     $recipes[$name]     = new Recipe($package, $name, $job, $manifest);
                 }
             }
-
-            if ($noRecipe && 'harmony-theme' === $package->getType()) {
-                $manifest = [];
-                $theme    = new HarmonyTheme($this->composer, $package, $job);
-                $envs     = \in_array($name, $devPackages) ? ['dev', 'test'] : ['all'];
-                foreach ($theme->getClassNames() as $class) {
-                    $manifest['manifest']['themes'][$class] = $envs;
-                }
-                if ($manifest) {
-                    $manifest['origin'] = sprintf('%s:%s@auto-generated recipe', $name, $package->getPrettyVersion());
-                    $recipes[$name]     = new Recipe($package, $name, $job, $manifest);
-                }
-            }
         }
         $this->operations = [];
 
@@ -924,6 +913,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
      */
     private function shouldRecordOperation(PackageEvent $event): bool
     {
+        /** @var OperationInterface|InstallOperation $operation */
         $operation = $event->getOperation();
         if ($operation instanceof UpdateOperation) {
             $package = $operation->getTargetPackage();
@@ -971,10 +961,11 @@ class Flex implements PluginInterface, EventSubscriberInterface
             $repos[] = [$repo];
         }
 
-        $this->rfs->download($repos, function ($repo) {
-            ParallelDownloader::$cacheNext = true;
-            $repo->getProviderNames();
-        });
+        $this->rfs->download($repos, /** @var ComposerRepository $repo */
+            function ($repo) {
+                ParallelDownloader::$cacheNext = true;
+                $repo->getProviderNames();
+            });
     }
 
     /**

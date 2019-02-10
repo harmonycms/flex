@@ -10,6 +10,9 @@ namespace Harmony\Flex\Installer;
 class Theme extends BaseInstaller
 {
 
+    /** Constant */
+    const DIRNAME = 'themes';
+
     /**
      * Returns install locations
      *
@@ -17,7 +20,17 @@ class Theme extends BaseInstaller
      */
     protected function getLocations(): array
     {
-        return ['themes/{$name}/'];
+        return [self::DIRNAME . '/{$vendor}/{$name}/'];
+    }
+
+    /**
+     * Returns base directory
+     *
+     * @return string
+     */
+    public function getBaseDir(): string
+    {
+        return rtrim(dirname($this->composer->getConfig()->get('vendor-dir')), '/') . '/' . self::DIRNAME;
     }
 
     /**

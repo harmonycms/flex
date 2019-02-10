@@ -26,7 +26,6 @@ abstract class BaseInstaller
     /** @var ConsoleIO $io */
     protected $io;
 
-
     /**
      * BaseInstaller constructor.
      *
@@ -36,9 +35,9 @@ abstract class BaseInstaller
      */
     public function __construct(PackageInterface $package, Composer $composer, ConsoleIO $io)
     {
-        $this->package      = $package;
-        $this->composer     = $composer;
-        $this->io           = $io;
+        $this->package  = $package;
+        $this->composer = $composer;
+        $this->io       = $io;
     }
 
     /**
@@ -47,6 +46,16 @@ abstract class BaseInstaller
      * @return array
      */
     abstract protected function getLocations(): array;
+
+    /**
+     * Returns base directory
+     *
+     * @return null|string
+     */
+    public function getBaseDir(): ?string
+    {
+        return null;
+    }
 
     /**
      * Return the install path based on package type.
