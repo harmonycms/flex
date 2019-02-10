@@ -19,6 +19,7 @@ use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\Downloader\TransportException;
 use Composer\IO\IOInterface;
 use Composer\Json\JsonFile;
+use Symfony\Flex\Response;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
