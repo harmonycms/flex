@@ -3,7 +3,7 @@
 namespace Harmony\Flex\Configurator;
 
 use DotEnvWriter\DotEnvWriter;
-use Harmony\Flex\Platform\Model\Project;
+use Harmony\Flex\Platform\Model;
 
 /**
  * Class EnvProjectConfigurator
@@ -14,9 +14,9 @@ class EnvProjectConfigurator extends AbstractConfigurator
 {
 
     /**
-     * @param Project $project
-     * @param array   $vars
-     * @param array   $options
+     * @param Model\Project $project
+     * @param array         $vars
+     * @param array         $options
      *
      * @throws \Exception
      */
@@ -27,8 +27,8 @@ class EnvProjectConfigurator extends AbstractConfigurator
     }
 
     /**
-     * @param Project $project
-     * @param         $config
+     * @param Model\Project $project
+     * @param               $config
      */
     public function unconfigure($project, $config)
     {
@@ -36,11 +36,11 @@ class EnvProjectConfigurator extends AbstractConfigurator
     }
 
     /**
-     * @param Project $project
+     * @param Model\Project $project
      *
      * @throws \Exception
      */
-    private function configureDatabaseEnv(Project $project)
+    private function configureDatabaseEnv(Model\Project $project)
     {
         foreach (['.env.dist', '.env'] as $file) {
             $env = $this->options->get('root-dir') . '/' . $file;
@@ -49,7 +49,7 @@ class EnvProjectConfigurator extends AbstractConfigurator
             }
             $envWriter = new DotEnvWriter($env);
 
-            /** @var Project\ProjectDatabase $database */
+            /** @var Model\ProjectDatabase $database */
             foreach ($project->getDatabases() as $database) {
                 foreach ($database->getEnv() as $key => $value) {
                     // Comment old `DATABASE_URL` variable
