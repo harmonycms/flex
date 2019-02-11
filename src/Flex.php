@@ -53,7 +53,6 @@ use Harmony\Flex\Repository\TruncatedComposerRepository;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Flex\Command;
-use Symfony\Flex\Configurator;
 use Symfony\Flex\Event\UpdateEvent;
 use Symfony\Flex\Lock;
 use Symfony\Flex\Options;

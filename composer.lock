@@ -247,12 +247,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/harmonycms/sdk.git",
-                "reference": "98c4d2c01c12f9b3494a1049956bec8ce8709eeb"
+                "reference": "4e947dcbd303a5ed04be0cec3e993a3803ad1e87"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/harmonycms/sdk/zipball/98c4d2c01c12f9b3494a1049956bec8ce8709eeb",
-                "reference": "98c4d2c01c12f9b3494a1049956bec8ce8709eeb",
+                "url": "https://api.github.com/repos/harmonycms/sdk/zipball/4e947dcbd303a5ed04be0cec3e993a3803ad1e87",
+                "reference": "4e947dcbd303a5ed04be0cec3e993a3803ad1e87",
                 "shasum": ""
             },
             "require": {
@@ -288,7 +288,7 @@
                 "harmony-cms",
                 "sdk"
             ],
-            "time": "2019-02-08T18:58:09+00:00"
+            "time": "2019-02-11T00:07:43+00:00"
         },
         {
             "name": "nyholm/psr7",
@@ -1496,16 +1496,16 @@
         },
         {
             "name": "composer/composer",
-            "version": "1.8.3",
+            "version": "1.8.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "a6a3b44581398b7135c7baa0557b7c5b10808b47"
+                "reference": "bc364c2480c17941e2135cfc568fa41794392534"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/a6a3b44581398b7135c7baa0557b7c5b10808b47",
-                "reference": "a6a3b44581398b7135c7baa0557b7c5b10808b47",
+                "url": "https://api.github.com/repos/composer/composer/zipball/bc364c2480c17941e2135cfc568fa41794392534",
+                "reference": "bc364c2480c17941e2135cfc568fa41794392534",
                 "shasum": ""
             },
             "require": {
@@ -1572,7 +1572,7 @@
                 "dependency",
                 "package"
             ],
-            "time": "2019-01-30T07:31:34+00:00"
+            "time": "2019-02-11T09:52:10+00:00"
         },
         {
             "name": "composer/semver",

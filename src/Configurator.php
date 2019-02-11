@@ -9,41 +9,67 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Flex;
+namespace Harmony\Flex;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
-use Symfony\Flex\Configurator\AbstractConfigurator;
+use Harmony\Flex\Configurator\AbstractConfigurator;
+use Symfony\Flex\Options;
+use Symfony\Flex\Configurator as SymfonyConfigurator;
+use Symfony\Flex\Recipe;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  */
 class Configurator
 {
+
+    /** @var Composer $composer */
     private $composer;
+
+    /** @var IOInterface $io */
     private $io;
+
+    /** @var Options $options */
     private $options;
+
+    /** @var array $configurators */
     private $configurators;
+
+    /** @var array $cache */
     private $cache;
 
+    /**
+     * Configurator constructor.
+     *
+     * @param Composer    $composer
+     * @param IOInterface $io
+     * @param Options     $options
+     */
     public function __construct(Composer $composer, IOInterface $io, Options $options)
     {
         $this->composer = $composer;
-        $this->io = $io;
-        $this->options = $options;
+        $this->io       = $io;
+        $this->options  = $options;
         // ordered list of configurators
         $this->configurators = [
-            'bundles' => Configurator\BundlesConfigurator::class,
-            'copy-from-recipe' => Configurator\CopyFromRecipeConfigurator::class,
-            'copy-from-package' => Configurator\CopyFromPackageConfigurator::class,
-            'env' => Configurator\EnvConfigurator::class,
-            'container' => Configurator\ContainerConfigurator::class,
-            'makefile' => Configurator\MakefileConfigurator::class,
-            'composer-scripts' => Configurator\ComposerScriptsConfigurator::class,
-            'gitignore' => Configurator\GitignoreConfigurator::class,
+            'bundles'           => SymfonyConfigurator\BundlesConfigurator::class,
+            'copy-from-recipe'  => SymfonyConfigurator\CopyFromRecipeConfigurator::class,
+            'copy-from-package' => SymfonyConfigurator\CopyFromPackageConfigurator::class,
+            'env'               => SymfonyConfigurator\EnvConfigurator::class,
+            'container'         => SymfonyConfigurator\ContainerConfigurator::class,
+            'makefile'          => SymfonyConfigurator\MakefileConfigurator::class,
+            'composer-scripts'  => SymfonyConfigurator\ComposerScriptsConfigurator::class,
+            'gitignore'         => SymfonyConfigurator\GitignoreConfigurator::class,
+            'env-project'       => Configurator\EnvProjectConfigurator::class,
+            'themes'            => Configurator\ThemesConfigurator::class
         ];
     }
 
+    /**
+     * @param Recipe $recipe
+     * @param array  $options
+     */
     public function install(Recipe $recipe, array $options = [])
     {
         $manifest = $recipe->getManifest();
@@ -54,6 +80,9 @@ class Configurator
         }
     }
 
+    /**
+     * @param Recipe $recipe
+     */
     public function unconfigure(Recipe $recipe)
     {
         $manifest = $recipe->getManifest();
@@ -64,7 +93,12 @@ class Configurator
         }
     }
 
-    private function get($key): AbstractConfigurator
+    /**
+     * @param $key
+     *
+     * @return AbstractConfigurator
+     */
+    public function get($key): AbstractConfigurator
     {
         if (!isset($this->configurators[$key])) {
             throw new \InvalidArgumentException(sprintf('Unknown configurator "%s".', $key));

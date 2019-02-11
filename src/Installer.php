@@ -10,7 +10,6 @@ use Composer\Package\PackageInterface;
 use Composer\Repository\InstalledRepositoryInterface;
 use Composer\Util\Filesystem;
 use Harmony\Flex\Installer\{BaseInstaller, Extension, Package, Stack, Theme};
-use Symfony\Flex\Configurator;
 use Symfony\Flex\Recipe;
 
 /**
