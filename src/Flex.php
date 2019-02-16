@@ -531,7 +531,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
                     break;
                 case 'uninstall':
                     $this->io->writeError(sprintf('  - Unconfiguring %s', $this->formatOrigin($recipe->getOrigin())));
-                    $this->configurator->unconfigure($recipe);
+                    $this->configurator->uninstall($recipe);
                     break;
             }
         }

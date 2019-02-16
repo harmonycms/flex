@@ -64,7 +64,7 @@ class Theme extends BaseInstaller
         foreach (parent::getClassNames($package, 'uninstall') as $class) {
             $manifest['manifest']['themes'][$class] = ['all'];
         }
-        $this->configurator->unconfigure(new Recipe($package, $package->getName(), 'uninstall', $manifest));
+        $this->configurator->uninstall(new Recipe($package, $package->getName(), 'uninstall', $manifest));
     }
 
     /**
