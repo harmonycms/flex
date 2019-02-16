@@ -53,6 +53,21 @@ class Theme extends BaseInstaller
     }
 
     /**
+     * Execute method during the uninstall process
+     *
+     * @param InstalledRepositoryInterface $repo
+     * @param PackageInterface             $package
+     */
+    public function uninstall(InstalledRepositoryInterface $repo, PackageInterface $package): void
+    {
+        $manifest = [];
+        foreach (parent::getClassNames($package, 'uninstall') as $class) {
+            $manifest['manifest']['themes'][$class] = ['all'];
+        }
+        $this->configurator->install(new Recipe($package, $package->getName(), 'uninstall', $manifest));
+    }
+
+    /**
      * Success installed message.
      * Ask user to set as default theme
      */

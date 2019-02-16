@@ -121,6 +121,16 @@ abstract class BaseInstaller
     }
 
     /**
+     * Execute method during the uninstall process
+     *
+     * @param InstalledRepositoryInterface $repo
+     * @param PackageInterface             $package
+     */
+    public function uninstall(InstalledRepositoryInterface $repo, PackageInterface $package): void
+    {
+    }
+
+    /**
      * Replace vars in a path
      *
      * @param  string $path

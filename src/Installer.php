@@ -102,7 +102,15 @@ class Installer extends LibraryInstaller
      */
     public function uninstall(InstalledRepositoryInterface $repo, PackageInterface $package): void
     {
+        $installer = $this->_getInstallerInstance($package);
+        if (null !== $baseDir = $installer->getBaseDir()) {
+            $this->vendorDir = $baseDir;
+        }
+
         parent::uninstall($repo, $package);
+
+        $installer->uninstall($repo, $package);
+
         $installPath = $this->getPackageBasePath($package);
         $this->io->write(sprintf('Deleting %s - %s', $installPath,
             !file_exists($installPath) ? '<comment>deleted</comment>' : '<error>not deleted</error>'));
