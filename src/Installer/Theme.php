@@ -2,6 +2,10 @@
 
 namespace Harmony\Flex\Installer;
 
+use Composer\Package\PackageInterface;
+use Composer\Repository\InstalledRepositoryInterface;
+use Symfony\Flex\Recipe;
+
 /**
  * Class Theme
  *
@@ -34,6 +38,21 @@ class Theme extends BaseInstaller
     }
 
     /**
+     * Execute method during the install process
+     *
+     * @param InstalledRepositoryInterface $repo
+     * @param PackageInterface             $package
+     */
+    public function install(InstalledRepositoryInterface $repo, PackageInterface $package): void
+    {
+        $manifest = [];
+        foreach (parent::getClassNames($package, 'install') as $class) {
+            $manifest['manifest']['themes'][$class] = ['all'];
+        }
+        $this->configurator->install(new Recipe($package, $package->getName(), 'install', $manifest));
+    }
+
+    /**
      * Success installed message.
      * Ask user to set as default theme
      */
@@ -45,7 +64,7 @@ class Theme extends BaseInstaller
         $this->io->success('Theme "' . $prettyName . '" successfully installed');
 
         if ($this->io->confirm('Set as default theme?', false)) {
-            $this->configurator->update('theme', $name);
+            // TODO: implements
         }
     }
 }

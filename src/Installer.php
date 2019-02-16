@@ -10,7 +10,6 @@ use Composer\Package\PackageInterface;
 use Composer\Repository\InstalledRepositoryInterface;
 use Composer\Util\Filesystem;
 use Harmony\Flex\Installer\{BaseInstaller, Extension, Package, Stack, Theme};
-use Symfony\Flex\Recipe;
 
 /**
  * Class Installer
@@ -92,11 +91,7 @@ class Installer extends LibraryInstaller
 
         parent::install($repo, $package);
 
-        $manifest = [];
-        foreach ($this->_getClassNames($package, 'install') as $class) {
-            $manifest['manifest']['themes'][$class] = ['all'];
-        }
-        $this->configurator->install(new Recipe($package, $package->getName(), 'install', $manifest));
+        $installer->install($repo, $package);
     }
 
     /**
@@ -125,79 +120,6 @@ class Installer extends LibraryInstaller
 
     /**
      * @param PackageInterface $package
-     * @param string           $operation
-     *
-     * @return array
-     */
-    private function _getClassNames(PackageInterface $package, string $operation): array
-    {
-        $uninstall = 'uninstall' === $operation;
-        $classes   = [];
-        $autoload  = $package->getAutoload();
-        foreach (['psr-4' => true, 'psr-0' => false] as $psr => $isPsr4) {
-            if (!isset($autoload[$psr])) {
-                continue;
-            }
-
-            foreach ($autoload[$psr] as $namespace => $paths) {
-                if (!\is_array($paths)) {
-                    $paths = [$paths];
-                }
-                foreach ($paths as $path) {
-                    foreach ($this->_extractClassNames($namespace) as $class) {
-                        // we only check class existence on install as we do have the code available
-                        // in contrast to uninstall operation
-                        if (!$uninstall && !$this->_checkClassExists($package, $class, $path, $isPsr4)) {
-                            continue;
-                        }
-
-                        $classes[] = $class;
-                    }
-                }
-            }
-        }
-
-        return $classes;
-    }
-
-    /**
-     * @param string $namespace
-     *
-     * @return array
-     */
-    private function _extractClassNames(string $namespace): array
-    {
-        $namespace = trim($namespace, '\\');
-        $class     = $namespace . '\\';
-        $parts     = explode('\\', $namespace);
-        $suffix    = $parts[\count($parts) - 1];
-
-        return [$class . $parts[0] . $suffix];
-    }
-
-    /**
-     * @param PackageInterface $package
-     * @param string           $class
-     * @param string           $path
-     * @param bool             $isPsr4
-     *
-     * @return bool
-     */
-    private function _checkClassExists(PackageInterface $package, string $class, string $path, bool $isPsr4): bool
-    {
-        $classPath = ($this->vendorDir ? $this->vendorDir . '/' : '') . $package->getPrettyName() . '/' . $path . '/';
-        $parts     = explode('\\', $class);
-        $class     = $parts[\count($parts) - 1];
-        if (!$isPsr4) {
-            $classPath .= str_replace('\\', '', implode('/', \array_slice($parts, 0, - 1))) . '/';
-        }
-        $classPath .= str_replace('\\', '/', $class) . '.php';
-
-        return file_exists($classPath);
-    }
-
-    /**
-     * @param PackageInterface $package
      *
      * @return BaseInstaller
      */
@@ -209,6 +131,6 @@ class Installer extends LibraryInstaller
         }
         $class = $this->supports[$type];
 
-        return new $class($package, $this->composer, $this->io);
+        return new $class($package, $this->composer, $this->io, $this->configurator);
     }
 }

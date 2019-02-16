@@ -4,6 +4,8 @@ namespace Harmony\Flex\Installer;
 
 use Composer\Composer;
 use Composer\Package\PackageInterface;
+use Composer\Repository\InstalledRepositoryInterface;
+use Harmony\Flex\Configurator;
 use Harmony\Flex\IO\ConsoleIO;
 
 /**
@@ -26,18 +28,24 @@ abstract class BaseInstaller
     /** @var ConsoleIO $io */
     protected $io;
 
+    /** @var Configurator $configurator */
+    protected $configurator;
+
     /**
      * BaseInstaller constructor.
      *
      * @param PackageInterface $package
      * @param Composer         $composer
      * @param ConsoleIO        $io
+     * @param Configurator     $configurator
      */
-    public function __construct(PackageInterface $package, Composer $composer, ConsoleIO $io)
+    public function __construct(PackageInterface $package, Composer $composer, ConsoleIO $io,
+                                Configurator $configurator)
     {
-        $this->package  = $package;
-        $this->composer = $composer;
-        $this->io       = $io;
+        $this->package      = $package;
+        $this->composer     = $composer;
+        $this->io           = $io;
+        $this->configurator = $configurator;
     }
 
     /**
@@ -96,6 +104,16 @@ abstract class BaseInstaller
     }
 
     /**
+     * Execute method during the install process
+     *
+     * @param InstalledRepositoryInterface $repo
+     * @param PackageInterface             $package
+     */
+    public function install(InstalledRepositoryInterface $repo, PackageInterface $package): void
+    {
+    }
+
+    /**
      * Execute method after package installed
      */
     public function postInstall(): void
@@ -123,5 +141,79 @@ abstract class BaseInstaller
         }
 
         return $path;
+    }
+
+    /**
+     * @param PackageInterface $package
+     * @param string           $operation
+     *
+     * @return array
+     */
+    protected function getClassNames(PackageInterface $package, string $operation): array
+    {
+        $uninstall = 'uninstall' === $operation;
+        $classes   = [];
+        $autoload  = $package->getAutoload();
+        foreach (['psr-4' => true, 'psr-0' => false] as $psr => $isPsr4) {
+            if (!isset($autoload[$psr])) {
+                continue;
+            }
+
+            foreach ($autoload[$psr] as $namespace => $paths) {
+                if (!\is_array($paths)) {
+                    $paths = [$paths];
+                }
+                foreach ($paths as $path) {
+                    foreach ($this->_extractClassNames($namespace) as $class) {
+                        // we only check class existence on install as we do have the code available
+                        // in contrast to uninstall operation
+                        if (!$uninstall && !$this->_checkClassExists($package, $class, $path, $isPsr4)) {
+                            continue;
+                        }
+
+                        $classes[] = $class;
+                    }
+                }
+            }
+        }
+
+        return $classes;
+    }
+
+    /**
+     * @param string $namespace
+     *
+     * @return array
+     */
+    private function _extractClassNames(string $namespace): array
+    {
+        $namespace = trim($namespace, '\\');
+        $class     = $namespace . '\\';
+        $parts     = explode('\\', $namespace);
+        $suffix    = $parts[\count($parts) - 1];
+
+        return [$class . $parts[0] . $suffix];
+    }
+
+    /**
+     * @param PackageInterface $package
+     * @param string           $class
+     * @param string           $path
+     * @param bool             $isPsr4
+     *
+     * @return bool
+     */
+    private function _checkClassExists(PackageInterface $package, string $class, string $path, bool $isPsr4): bool
+    {
+        $classPath = ($this->getBaseDir() ? $this->getBaseDir() . '/' : '') . $package->getPrettyName() . '/' . $path .
+            '/';
+        $parts     = explode('\\', $class);
+        $class     = $parts[\count($parts) - 1];
+        if (!$isPsr4) {
+            $classPath .= str_replace('\\', '', implode('/', \array_slice($parts, 0, - 1))) . '/';
+        }
+        $classPath .= str_replace('\\', '/', $class) . '.php';
+
+        return file_exists($classPath);
     }
 }
