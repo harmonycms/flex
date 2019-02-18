@@ -13,13 +13,13 @@ namespace Harmony\Flex;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
-use Harmony\Flex\Configurator\AbstractConfigurator;
 use Symfony\Flex\Options;
 use Symfony\Flex\Configurator as SymfonyConfigurator;
 use Symfony\Flex\Recipe;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
+ * @author David Sanchez <david38sanchez@gmail.com>
  */
 class Configurator
 {
@@ -62,7 +62,8 @@ class Configurator
             'composer-scripts'  => SymfonyConfigurator\ComposerScriptsConfigurator::class,
             'gitignore'         => SymfonyConfigurator\GitignoreConfigurator::class,
             'env-project'       => Configurator\EnvProjectConfigurator::class,
-            'themes'            => Configurator\ThemesConfigurator::class
+            'themes'            => Configurator\ThemesConfigurator::class,
+            'extensions'        => Configurator\ExtensionsConfigurator::class
         ];
     }
 
@@ -96,9 +97,9 @@ class Configurator
     /**
      * @param $key
      *
-     * @return AbstractConfigurator
+     * @return Configurator\AbstractConfigurator
      */
-    public function get($key): AbstractConfigurator
+    public function get($key): Configurator\AbstractConfigurator
     {
         if (!isset($this->configurators[$key])) {
             throw new \InvalidArgumentException(sprintf('Unknown configurator "%s".', $key));
