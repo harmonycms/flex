@@ -67,4 +67,24 @@ class Extension extends BaseInstaller
         }
         $this->configurator->uninstall(new Recipe($package, $package->getName(), 'uninstall', $manifest));
     }
+
+    /**
+     * @param string $namespace
+     *
+     * @return array
+     */
+    protected function extractClassNames(string $namespace): array
+    {
+        $namespace = trim($namespace, '\\');
+        $class     = $namespace . '\\';
+        $parts     = explode('\\', $namespace);
+        $suffix    = $parts[\count($parts) - 1];
+
+        return [
+            $class . $parts[0] . $suffix,
+            $class . $parts[0] . $suffix . 'Component',
+            $class . $parts[0] . $suffix . 'Module',
+            $class . $parts[0] . $suffix . 'Plugin'
+        ];
+    }
 }

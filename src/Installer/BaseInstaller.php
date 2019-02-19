@@ -174,7 +174,7 @@ abstract class BaseInstaller
                     $paths = [$paths];
                 }
                 foreach ($paths as $path) {
-                    foreach ($this->_extractClassNames($namespace) as $class) {
+                    foreach ($this->extractClassNames($namespace) as $class) {
                         // we only check class existence on install as we do have the code available
                         // in contrast to uninstall operation
                         if (!$uninstall && !$this->_checkClassExists($package, $class, $path, $isPsr4)) {
@@ -195,7 +195,7 @@ abstract class BaseInstaller
      *
      * @return array
      */
-    private function _extractClassNames(string $namespace): array
+    protected function extractClassNames(string $namespace): array
     {
         $namespace = trim($namespace, '\\');
         $class     = $namespace . '\\';
