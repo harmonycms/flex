@@ -13,7 +13,6 @@ namespace Symfony\Flex\Configurator;
 
 use Harmony\Flex\Configurator\AbstractConfigurator;
 use Symfony\Flex\Lock;
-use Symfony\Flex\Recipe;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>

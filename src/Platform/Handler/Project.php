@@ -29,6 +29,7 @@ use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Serializer;
+use Symfony\Flex\Lock;
 use Symfony\Flex\ScriptExecutor;
 
 /**
@@ -77,6 +78,9 @@ class Project
     /** @var ScriptExecutor $executor */
     protected $executor;
 
+    /** @var Lock $lock */
+    protected $lock;
+
     /**
      * Project constructor.
      *
@@ -86,11 +90,12 @@ class Project
      * @param Configurator      $configurator
      * @param Config            $config
      * @param ScriptExecutor    $executor
+     * @param Lock              $lock
      *
      * @throws \Http\Client\Exception
      */
-    public function __construct(IOInterface $io, HttpClient\Client $client, Composer $composer, Configurator $configurator,
-                                Config $config, ScriptExecutor $executor)
+    public function __construct(IOInterface $io, HttpClient\Client $client, Composer $composer,
+                                Configurator $configurator, Config $config, ScriptExecutor $executor, Lock $lock)
     {
         $this->client              = $client;
         $this->io                  = $io;
@@ -102,6 +107,7 @@ class Project
         $this->serializer          = new Serializer([new ProjectNormalizer()], [new JsonEncoder()]);
         $this->configurator        = $configurator;
         $this->executor            = $executor;
+        $this->lock                = $lock;
 
         $this->getOrAskForId();
     }
@@ -126,7 +132,7 @@ class Project
     public function configDatabases(): void
     {
         if ($this->projectData->hasDatabases()) {
-            $this->configurator->get('env-project')->configure($this->projectData, []);
+            $this->configurator->get('env-project')->configure($this->projectData, [], $this->lock);
         }
     }
 
@@ -230,10 +236,10 @@ class Project
                             new DefaultPolicy(false, false), new Pool(), new CompositeRepository([]), new Request(),
                             [$operation], $operation);
 
-//                    $this->composer->getAutoloadGenerator()
-//                        ->dump($this->composer->getConfig(),
-//                            $this->composer->getRepositoryManager()->getLocalRepository(), $package,
-//                            $this->installationManager, 'composer');
+                    //                    $this->composer->getAutoloadGenerator()
+                    //                        ->dump($this->composer->getConfig(),
+                    //                            $this->composer->getRepositoryManager()->getLocalRepository(), $package,
+                    //                            $this->installationManager, 'composer');
                 }
             }
         }

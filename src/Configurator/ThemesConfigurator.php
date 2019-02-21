@@ -2,6 +2,8 @@
 
 namespace Harmony\Flex\Configurator;
 
+use Symfony\Flex\Lock;
+
 /**
  * Class ThemesConfigurator
  *
@@ -13,9 +15,10 @@ class ThemesConfigurator extends AbstractConfigurator
     /**
      * @param       $recipe
      * @param array $themes
+     * @param Lock  $lock
      * @param array $options
      */
-    public function configure($recipe, $themes, array $options = [])
+    public function configure($recipe, $themes, Lock $lock, array $options = [])
     {
         $this->write('Enabling the package as a HarmonyCMS theme');
         $file       = $this->_getConfFile();
@@ -32,8 +35,9 @@ class ThemesConfigurator extends AbstractConfigurator
     /**
      * @param       $recipe
      * @param array $themes
+     * @param Lock  $lock
      */
-    public function unconfigure($recipe, $themes)
+    public function unconfigure($recipe, $themes, Lock $lock)
     {
         $this->write('Disabling the HarmonyCMS theme');
         $file = $this->_getConfFile();

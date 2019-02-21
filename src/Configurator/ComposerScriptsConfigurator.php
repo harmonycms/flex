@@ -16,7 +16,6 @@ use Composer\Json\JsonFile;
 use Composer\Json\JsonManipulator;
 use Harmony\Flex\Configurator\AbstractConfigurator;
 use Symfony\Flex\Lock;
-use Symfony\Flex\Recipe;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>

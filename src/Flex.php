@@ -239,10 +239,10 @@ class Flex implements PluginInterface, EventSubscriberInterface
 
         // Add installer for custom types
         $composer->getInstallationManager()->addInstaller(new Installer($this->io, $composer, 'library', null, null,
-            $this->configurator));
+            $this->configurator, $this->lock));
 
         // Platform
-        $this->platform = new Platform($this->composer, $this->io, $this->configurator, $this->executor);
+        $this->platform = new Platform($this->composer, $this->io, $this->configurator, $this->executor, $this->lock);
         $this->platform->checkConnectivity();
 
         $backtrace = debug_backtrace();
@@ -813,7 +813,8 @@ class Flex implements PluginInterface, EventSubscriberInterface
 
                 foreach ($manifests[$name]['manifest']['conflict'] as $conflictingPackage => $constraint) {
                     if ($lockedRepository->findPackage($conflictingPackage, $constraint)) {
-                        $this->io->writeError(sprintf('  - Skipping recipe for %s: it conflicts with %s %s.', $name, $conflictingPackage, $constraint), true, IOInterface::VERBOSE);
+                        $this->io->writeError(sprintf('  - Skipping recipe for %s: it conflicts with %s %s.', $name,
+                            $conflictingPackage, $constraint), true, IOInterface::VERBOSE);
 
                         continue 2;
                     }

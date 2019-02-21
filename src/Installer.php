@@ -10,6 +10,7 @@ use Composer\Package\PackageInterface;
 use Composer\Repository\InstalledRepositoryInterface;
 use Composer\Util\Filesystem;
 use Harmony\Flex\Installer\{BaseInstaller, Extension, Package, Stack, Theme};
+use Symfony\Flex\Lock;
 
 /**
  * Class Installer
@@ -34,6 +35,9 @@ class Installer extends LibraryInstaller
     /** @var Configurator $configurator */
     protected $configurator;
 
+    /** @var Lock $lock */
+    protected $lock;
+
     /**
      * Installer constructor.
      *
@@ -43,13 +47,15 @@ class Installer extends LibraryInstaller
      * @param Filesystem|null      $filesystem
      * @param BinaryInstaller|null $binaryInstaller
      * @param Configurator|null    $configurator
+     * @param Lock                 $lock
      */
     public function __construct(IOInterface $io, Composer $composer, string $type = 'library',
                                 Filesystem $filesystem = null, BinaryInstaller $binaryInstaller = null,
-                                Configurator $configurator = null)
+                                Configurator $configurator = null, Lock $lock = null)
     {
         parent::__construct($io, $composer, $type, $filesystem, $binaryInstaller);
         $this->configurator = $configurator;
+        $this->lock         = $lock;
     }
 
     /**
@@ -139,6 +145,6 @@ class Installer extends LibraryInstaller
         }
         $class = $this->supports[$type];
 
-        return new $class($package, $this->composer, $this->io, $this->configurator);
+        return new $class($package, $this->composer, $this->io, $this->configurator, $this->lock);
     }
 }

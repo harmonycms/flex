@@ -11,6 +11,7 @@ use Harmony\Flex\Platform\Handler\Project;
 use Harmony\Flex\Repository\HarmonyRepository;
 use Harmony\Flex\Util\Harmony as HarmonyUtil;
 use Harmony\Sdk\HttpClient;
+use Symfony\Flex\Lock;
 use Symfony\Flex\ScriptExecutor;
 
 /**
@@ -44,6 +45,9 @@ class Platform
     /** @var ScriptExecutor $executor */
     protected $executor;
 
+    /** @var Lock $lock */
+    protected $lock;
+
     /**
      * Platform constructor.
      *
@@ -51,15 +55,17 @@ class Platform
      * @param IOInterface    $io
      * @param Configurator   $configurator
      * @param ScriptExecutor $executor
+     * @param Lock           $lock
      */
     public function __construct(Composer $composer, IOInterface $io, Configurator $configurator,
-                                ScriptExecutor $executor)
+                                ScriptExecutor $executor, Lock $lock)
     {
         $this->composer     = $composer;
         $this->io           = $io;
         $this->client       = new HttpClient\Client();
         $this->configurator = $configurator;
         $this->executor     = $executor;
+        $this->lock         = $lock;
     }
 
     /**
@@ -133,6 +139,6 @@ class Platform
     public function getProject(): Project
     {
         return new Project($this->io, $this->client, $this->composer, $this->configurator, $this->composer->getConfig(),
-            $this->executor);
+            $this->executor, $this->lock);
     }
 }

@@ -4,6 +4,7 @@ namespace Harmony\Flex\Configurator;
 
 use DotEnvWriter\DotEnvWriter;
 use Harmony\Flex\Platform\Model;
+use Symfony\Flex\Lock;
 
 /**
  * Class EnvProjectConfigurator
@@ -16,11 +17,12 @@ class EnvProjectConfigurator extends AbstractConfigurator
     /**
      * @param Model\Project $project
      * @param array         $vars
+     * @param Lock          $lock
      * @param array         $options
      *
      * @throws \Exception
      */
-    public function configure($project, $vars, array $options = [])
+    public function configure($project, $vars, Lock $lock, array $options = [])
     {
         $this->write('Added environment variable defaults');
         $this->configureDatabaseEnv($project);
@@ -29,8 +31,9 @@ class EnvProjectConfigurator extends AbstractConfigurator
     /**
      * @param Model\Project $project
      * @param               $config
+     * @param Lock          $lock
      */
-    public function unconfigure($project, $config)
+    public function unconfigure($project, $config, Lock $lock)
     {
         // TODO: Implement unconfigure() method.
     }

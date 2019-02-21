@@ -49,7 +49,7 @@ class Theme extends BaseInstaller
         foreach (parent::getClassNames($package, 'install') as $class) {
             $manifest['manifest']['themes'][$class] = ['all'];
         }
-        $this->configurator->install(new Recipe($package, $package->getName(), 'install', $manifest));
+        $this->configurator->install(new Recipe($package, $package->getName(), 'install', $manifest), $this->lock);
     }
 
     /**
@@ -64,7 +64,7 @@ class Theme extends BaseInstaller
         foreach (parent::getClassNames($package, 'uninstall') as $class) {
             $manifest['manifest']['themes'][$class] = ['all'];
         }
-        $this->configurator->uninstall(new Recipe($package, $package->getName(), 'uninstall', $manifest));
+        $this->configurator->uninstall(new Recipe($package, $package->getName(), 'uninstall', $manifest), $this->lock);
     }
 
     /**

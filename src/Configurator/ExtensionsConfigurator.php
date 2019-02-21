@@ -2,6 +2,8 @@
 
 namespace Harmony\Flex\Configurator;
 
+use Symfony\Flex\Lock;
+
 /**
  * Class ExtensionsConfigurator
  *
@@ -14,9 +16,10 @@ class ExtensionsConfigurator extends AbstractConfigurator
     /**
      * @param       $recipe
      * @param array $extensions
+     * @param Lock  $lock
      * @param array $options
      */
-    public function configure($recipe, $extensions, array $options = [])
+    public function configure($recipe, $extensions, Lock $lock, array $options = [])
     {
         $this->write('Enabling the package as a HarmonyCMS extension');
         $file       = $this->_getConfFile();
@@ -33,8 +36,9 @@ class ExtensionsConfigurator extends AbstractConfigurator
     /**
      * @param       $recipe
      * @param array $extensions
+     * @param Lock  $lock
      */
-    public function unconfigure($recipe, $extensions)
+    public function unconfigure($recipe, $extensions, Lock $lock)
     {
         $this->write('Disabling the HarmonyCMS extension');
         $file = $this->_getConfFile();

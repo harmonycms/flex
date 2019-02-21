@@ -7,6 +7,7 @@ use Composer\Package\PackageInterface;
 use Composer\Repository\InstalledRepositoryInterface;
 use Harmony\Flex\Configurator;
 use Harmony\Flex\IO\ConsoleIO;
+use Symfony\Flex\Lock;
 
 /**
  * Class BaseInstaller
@@ -31,6 +32,9 @@ abstract class BaseInstaller
     /** @var Configurator $configurator */
     protected $configurator;
 
+    /** @var Lock $lock */
+    protected $lock;
+
     /**
      * BaseInstaller constructor.
      *
@@ -38,14 +42,16 @@ abstract class BaseInstaller
      * @param Composer         $composer
      * @param ConsoleIO        $io
      * @param Configurator     $configurator
+     * @param Lock             $lock
      */
     public function __construct(PackageInterface $package, Composer $composer, ConsoleIO $io,
-                                Configurator $configurator)
+                                Configurator $configurator, Lock $lock)
     {
         $this->package      = $package;
         $this->composer     = $composer;
         $this->io           = $io;
         $this->configurator = $configurator;
+        $this->lock         = $lock;
     }
 
     /**

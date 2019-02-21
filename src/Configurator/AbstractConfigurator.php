@@ -36,9 +36,9 @@ abstract class AbstractConfigurator
         $this->path = new Path($options->get('root-dir'));
     }
 
-    abstract public function configure(Recipe $recipe, $config, Lock $lock, array $options = []);
+    abstract public function configure($recipe, $config, Lock $lock, array $options = []);
 
-    abstract public function unconfigure(Recipe $recipe, $config, Lock $lock);
+    abstract public function unconfigure($recipe, $config, Lock $lock);
 
     protected function write($messages)
     {
