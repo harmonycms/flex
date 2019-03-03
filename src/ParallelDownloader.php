@@ -279,7 +279,38 @@ class ParallelDownloader extends RemoteFilesystem
             throw new TransportException($message, $messageCode);
         }
 
-        parent::callbackGet($notificationCode, $severity, $message, $messageCode, $bytesTransferred, $bytesMax);
+        /**
+         * Switch from parent class, cannot call `parent::callbackGet` because `$this->fileUrl` will return null due
+         * to private visibility.
+         */
+        switch ($notificationCode) {
+            case STREAM_NOTIFY_FAILURE:
+                if (400 === $messageCode) {
+                    // This might happen if your host is secured by ssl client certificate authentication
+                    // but you do not send an appropriate certificate
+                    throw new TransportException("The '" . $this->fileUrl . "' URL could not be accessed: " . $message,
+                        $messageCode);
+                }
+                break;
+
+            case STREAM_NOTIFY_FILE_SIZE_IS:
+                $this->bytesMax = $bytesMax;
+                break;
+
+            case STREAM_NOTIFY_PROGRESS:
+                if ($this->bytesMax > 0 && $this->progress) {
+                    $progression = min(100, round($bytesTransferred / $this->bytesMax * 100));
+
+                    if ((0 === $progression % 5) && 100 !== $progression && $progression !== $this->lastProgress) {
+                        $this->lastProgress = $progression;
+                        $this->io->overwriteError("Downloading (<comment>$progression%</comment>)", false);
+                    }
+                }
+                break;
+
+            default:
+                break;
+        }
 
         if (!$state = $this->sharedState) {
             return;
@@ -895,19 +926,19 @@ class ParallelDownloader extends RemoteFilesystem
         /**
          * Issue with this parts of code, asking indefinitely for an OAuth2 access token
          */
-//        if (self::$cacheNext) {
-//            self::$cacheNext = false;
-//
-//            if (3 < \func_num_args()) {
-//                $result = $this->getRemoteContents($originUrl, $fileUrl, $context, $responseHeaders);
-//                self::$cache[$fileUrl] = [$responseHeaders, $result];
-//            } else {
-//                $result = $this->getRemoteContents($originUrl, $fileUrl, $context);
-//                self::$cache[$fileUrl] = $result;
-//            }
-//
-//            return $result;
-//        }
+        //        if (self::$cacheNext) {
+        //            self::$cacheNext = false;
+        //
+        //            if (3 < \func_num_args()) {
+        //                $result = $this->getRemoteContents($originUrl, $fileUrl, $context, $responseHeaders);
+        //                self::$cache[$fileUrl] = [$responseHeaders, $result];
+        //            } else {
+        //                $result = $this->getRemoteContents($originUrl, $fileUrl, $context);
+        //                self::$cache[$fileUrl] = $result;
+        //            }
+        //
+        //            return $result;
+        //        }
 
         if (!$this->downloader) {
             return parent::getRemoteContents($originUrl, $fileUrl, $context, $responseHeaders);
