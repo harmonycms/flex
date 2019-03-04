@@ -18,9 +18,9 @@ use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\Locker;
 use Composer\Package\PackageInterface;
 use Composer\Repository\CompositeRepository;
-use Composer\Repository\InstalledArrayRepository;
 use Composer\Repository\InstalledFilesystemRepository;
 use Composer\Repository\InvalidRepositoryException;
+use Harmony\Flex\Autoload\AutoloadGenerator;
 use Harmony\Flex\Configurator;
 use Harmony\Flex\Platform\Model\Project as ProjectModel;
 use Harmony\Flex\Platform\Model\ProjectDatabase;
@@ -239,14 +239,13 @@ class Project
                     $this->updateInstalledJson($package);
 
                     // @TODO: Update autoloader, not working currently
-//                    $canonicalPackages = $this->composer->getRepositoryManager()
-//                        ->getLocalRepository()
-//                        ->getCanonicalPackages();
-//                    $arrayRepository   = new InstalledArrayRepository(array_merge($canonicalPackages, [$package]));
-//
-//                    $this->composer->getAutoloadGenerator()
-//                        ->dump($this->composer->getConfig(), $arrayRepository, $this->composer->getPackage(),
-//                            $this->installationManager, 'composer');
+                    $generator = new AutoloadGenerator($this->composer->getEventDispatcher(), $this->io);
+                    $generator->setClassMapAuthoritative(true);
+                    $generator->setCustomPackage($package);
+                    $generator->setDevMode(true);
+                    $generator->dump($this->composer->getConfig(),
+                        $this->composer->getRepositoryManager()->getLocalRepository(), $this->composer->getPackage(),
+                        $this->installationManager, 'composer');
 
                     // Dispatch event
                     $this->composer->getEventDispatcher()
