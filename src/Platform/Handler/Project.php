@@ -14,9 +14,13 @@ use Composer\Installer\PackageEvents;
 use Composer\IO\IOInterface;
 use Composer\Json\JsonFile;
 use Composer\Json\JsonManipulator;
+use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\Locker;
+use Composer\Package\PackageInterface;
 use Composer\Repository\CompositeRepository;
+use Composer\Repository\InstalledArrayRepository;
 use Composer\Repository\InstalledFilesystemRepository;
+use Composer\Repository\InvalidRepositoryException;
 use Harmony\Flex\Configurator;
 use Harmony\Flex\Platform\Model\Project as ProjectModel;
 use Harmony\Flex\Platform\Model\ProjectDatabase;
@@ -222,24 +226,33 @@ class Project
             foreach ($this->projectData->getPackages() as $name => $options) {
                 $package = $this->composer->getRepositoryManager()->findPackage($name, $options['version']);
                 if (null !== $package) {
-                    // Update composer.json file
-                    $this->updateComposer($name, $package->getPrettyVersion());
-
+                    // Install package
                     $operation = new InstallOperation($package);
                     $this->installationManager->install(new InstalledFilesystemRepository(new JsonFile('php://memory')),
                         $operation);
                     $this->installationManager->notifyInstalls($this->io);
+
+                    // Update composer.json + composer.lock files
+                    $this->updateComposer($name, $package->getPrettyVersion());
+
+                    // Update installed.json
+                    $this->updateInstalledJson($package);
+
+                    // @TODO: Update autoloader, not working currently
+//                    $canonicalPackages = $this->composer->getRepositoryManager()
+//                        ->getLocalRepository()
+//                        ->getCanonicalPackages();
+//                    $arrayRepository   = new InstalledArrayRepository(array_merge($canonicalPackages, [$package]));
+//
+//                    $this->composer->getAutoloadGenerator()
+//                        ->dump($this->composer->getConfig(), $arrayRepository, $this->composer->getPackage(),
+//                            $this->installationManager, 'composer');
 
                     // Dispatch event
                     $this->composer->getEventDispatcher()
                         ->dispatchPackageEvent(PackageEvents::POST_PACKAGE_INSTALL, false,
                             new DefaultPolicy(false, false), new Pool(), new CompositeRepository([]), new Request(),
                             [$operation], $operation);
-
-                    //                    $this->composer->getAutoloadGenerator()
-                    //                        ->dump($this->composer->getConfig(),
-                    //                            $this->composer->getRepositoryManager()->getLocalRepository(), $package,
-                    //                            $this->installationManager, 'composer');
                 }
             }
         }
@@ -339,6 +352,8 @@ class Project
     }
 
     /**
+     * Update `composer.json` file with installed package.
+     *
      * @param string $name
      * @param string $version
      *
@@ -356,6 +371,8 @@ class Project
     }
 
     /**
+     * Update `composer.lock` after updating `composer.json` file.
+     *
      * @throws \Exception
      */
     private function updateComposerLock()
@@ -368,5 +385,41 @@ class Project
         $lockData                 = $locker->getLockData();
         $lockData['content-hash'] = Locker::getContentHash($composerJson);
         $lockFile->write($lockData);
+    }
+
+    /**
+     * @param PackageInterface $package
+     *
+     * @throws InvalidRepositoryException
+     * @throws \Exception
+     */
+    protected function updateInstalledJson(PackageInterface $package)
+    {
+        $vendorDir         = $this->composer->getConfig()->get('vendor-dir');
+        $installedJsonFile = new JsonFile($vendorDir . '/composer/installed.json', null, $this->io);
+        try {
+            $packages = $installedJsonFile->read();
+            if (!is_array($packages)) {
+                throw new \UnexpectedValueException('Could not parse package list from the repository');
+            }
+        }
+        catch (\Exception $e) {
+            throw new InvalidRepositoryException('Invalid repository data in ' . $installedJsonFile->getPath() .
+                ', packages could not be loaded: [' . get_class($e) . '] ' . $e->getMessage());
+        }
+
+        $dumper = new ArrayDumper();
+        foreach ($this->composer->getRepositoryManager()
+                     ->getLocalRepository()
+                     ->getCanonicalPackages() as $canonicalPackage) {
+            $data[] = $dumper->dump($canonicalPackage);
+        }
+        $data[] = $dumper->dump($package);
+
+        usort($data, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
+
+        $installedJsonFile->write($data);
     }
 }
