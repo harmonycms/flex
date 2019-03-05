@@ -583,7 +583,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
      */
     public function postHarmonyProjectInstall()
     {
-        $this->platform->authenticate();
+        $this->platform->authenticate(false);
 
         if (true === $this->project->isActivated()) {
             // Configure `DATABASE_URL` env variable from configured project information.

@@ -96,11 +96,12 @@ class Platform
     /**
      * Authenticate user through HarmonyAPI Server.
      *
+     * @param bool $verbose
+     *
      * @return string
      * @throws \Http\Client\Exception
-     * @throws \Exception
      */
-    public function authenticate(): string
+    public function authenticate(bool $verbose = true): string
     {
         $harmonyUtil = new HarmonyUtil($this->io, $this->composer->getConfig());
 
@@ -118,9 +119,11 @@ class Platform
                 if (isset($tokenStatus['status']) && 'authenticated' === $tokenStatus['status']) {
                     $this->client->setBearerToken($token);
 
-                    /** @var HttpClient\Receiver\Users $users */
-                    $users = $this->client->getReceiver(HttpClient\Client::RECEIVER_USERS);
-                    $this->io->success('Welcome back "' . $users->getUser()['username'] . '"!');
+                    if (true === $verbose) {
+                        /** @var HttpClient\Receiver\Users $users */
+                        $users = $this->client->getReceiver(HttpClient\Client::RECEIVER_USERS);
+                        $this->io->success('Welcome back "' . $users->getUser()['username'] . '"!');
+                    }
 
                     return $token;
                 }
