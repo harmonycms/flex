@@ -74,9 +74,7 @@ class Project
     /** @var Configurator $configurator */
     protected $configurator;
 
-    /**
-     * @var bool $activated
-     */
+    /** @var bool $activated */
     protected $activated = true;
 
     /** @var ScriptExecutor $executor */
@@ -192,23 +190,16 @@ class Project
      * Install themes
      *
      * @return void
+     * @throws InvalidRepositoryException
      */
     public function installThemes(): void
     {
         if ($this->projectData->hasThemes()) {
             foreach ($this->projectData->getThemes() as $name => $options) {
-                $package = $this->composer->getRepositoryManager()->findPackage($name, $options['version']);
-                if (null !== $package) {
-                    $operation = new InstallOperation($package);
-                    $this->installationManager->install(new InstalledFilesystemRepository(new JsonFile('php://memory')),
-                        $operation);
-                    $this->installationManager->notifyInstalls($this->io);
-
-                    // Dispatch event
-                    $this->composer->getEventDispatcher()
-                        ->dispatchPackageEvent(PackageEvents::POST_PACKAGE_INSTALL, false,
-                            new DefaultPolicy(false, false), new Pool(), new CompositeRepository([]), new Request(),
-                            [$operation], $operation);
+                if (null !==
+                    $package = $this->composer->getRepositoryManager()->findPackage($name, $options['version'])) {
+                    // Run package installation
+                    $this->runInstallPackage($package);
                 }
             }
         }
@@ -218,38 +209,16 @@ class Project
      * Install packages
      *
      * @return void
-     * @throws \Exception
+     * @throws InvalidRepositoryException
      */
     public function installPackages(): void
     {
         if ($this->projectData->hasPackages()) {
             foreach ($this->projectData->getPackages() as $name => $options) {
-                $package = $this->composer->getRepositoryManager()->findPackage($name, $options['version']);
-                if (null !== $package) {
-                    // Install package
-                    $operation = new InstallOperation($package);
-                    $this->installationManager->install(new InstalledFilesystemRepository(new JsonFile('php://memory')),
-                        $operation);
-                    $this->installationManager->notifyInstalls($this->io);
-
-                    // Update composer.json + composer.lock files
-                    $this->updateComposer($name, $package->getPrettyVersion());
-
-                    // Update installed.json
-                    $this->updateInstalledJson($package);
-
-                    /** @var AutoloadGenerator $generator */
-                    $generator = $this->composer->getAutoloadGenerator();
-                    $generator->setCustomPackage($package);
-                    $localRepo = $this->composer->getRepositoryManager()->getLocalRepository();
-                    $generator->dump($this->composer->getConfig(), $localRepo, $this->composer->getPackage(),
-                        $this->installationManager, 'composer');
-
-                    // Dispatch event
-                    $this->composer->getEventDispatcher()
-                        ->dispatchPackageEvent(PackageEvents::POST_PACKAGE_INSTALL, false,
-                            new DefaultPolicy(false, false), new Pool(), new CompositeRepository([]), new Request(),
-                            [$operation], $operation);
+                if (null !==
+                    $package = $this->composer->getRepositoryManager()->findPackage($name, $options['version'])) {
+                    // Run package installation
+                    $this->runInstallPackage($package);
                 }
             }
         }
@@ -349,6 +318,44 @@ class Project
     }
 
     /**
+     * 1. Run package installation
+     * 2. Update `composer.json`, `composer.lock`, `installed.json`
+     * 3. Regenerate autoloader files
+     * 4. Dispatch event
+     *
+     * @param PackageInterface $package
+     *
+     * @throws InvalidRepositoryException
+     * @throws \Exception
+     */
+    protected function runInstallPackage(PackageInterface $package)
+    {
+        // Install package
+        $operation = new InstallOperation($package);
+        $this->installationManager->install(new InstalledFilesystemRepository(new JsonFile('php://memory')),
+            $operation);
+        $this->installationManager->notifyInstalls($this->io);
+
+        // Update composer.json + composer.lock files
+        $this->updateComposer($package->getName(), $package->getPrettyVersion());
+
+        // Update installed.json
+        $this->updateInstalledJson($package);
+
+        /** @var AutoloadGenerator $generator */
+        $generator = $this->composer->getAutoloadGenerator();
+        $generator->setCustomPackage($package);
+        $localRepo = $this->composer->getRepositoryManager()->getLocalRepository();
+        $generator->dump($this->composer->getConfig(), $localRepo, $this->composer->getPackage(),
+            $this->installationManager, 'composer');
+
+        // Dispatch event
+        $this->composer->getEventDispatcher()
+            ->dispatchPackageEvent(PackageEvents::POST_PACKAGE_INSTALL, false, new DefaultPolicy(false, false),
+                new Pool(), new CompositeRepository([]), new Request(), [$operation], $operation);
+    }
+
+    /**
      * Update `composer.json` file with installed package.
      *
      * @param string $name
@@ -372,7 +379,7 @@ class Project
      *
      * @throws \Exception
      */
-    private function updateComposerLock()
+    protected function updateComposerLock()
     {
         $lock                     = substr(Factory::getComposerFile(), 0, - 4) . 'lock';
         $composerJson             = file_get_contents(Factory::getComposerFile());
