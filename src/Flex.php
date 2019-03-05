@@ -585,7 +585,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
     {
         $this->platform->authenticate(false);
 
-        if (true === $this->project->isActivated()) {
+        if (null !== $this->project && true === $this->project->isActivated()) {
             // Configure `DATABASE_URL` env variable from configured project information.
             $this->project->configDatabases();
 
@@ -597,13 +597,13 @@ class Flex implements PluginInterface, EventSubscriberInterface
 
             // Clear useless/unused files/folders
             $this->project->clear();
+
+            // Create lock file
+            $this->lock->write();
+
+            // Process successfully completed
+            $this->io->success('HarmonyCMS installation successful');
         }
-
-        // Create lock file
-        $this->lock->write();
-
-        // Process successfully completed
-        $this->io->success('HarmonyCMS installation successful');
     }
 
     public function enableThanksReminder()
