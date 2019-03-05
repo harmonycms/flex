@@ -585,17 +585,19 @@ class Flex implements PluginInterface, EventSubscriberInterface
     {
         $this->platform->authenticate();
 
-        // Configure `DATABASE_URL` env variable from configured project information.
-        $this->project->configDatabases();
+        if (true === $this->project->isActivated()) {
+            // Configure `DATABASE_URL` env variable from configured project information.
+            $this->project->configDatabases();
 
-        // Ask user to initialize database.
-        $this->project->initDatabase();
+            // Ask user to initialize database.
+            $this->project->initDatabase();
 
-        // Ask create new admin user
-        $this->project->createUser();
+            // Ask create new admin user
+            $this->project->createUser();
 
-        // Clear useless/unused files/folders
-        $this->project->clear();
+            // Clear useless/unused files/folders
+            $this->project->clear();
+        }
 
         // Create lock file
         $this->lock->write();
@@ -1043,9 +1045,9 @@ class Flex implements PluginInterface, EventSubscriberInterface
             PackageEvents::POST_PACKAGE_INSTALL        => [['record'], ['installCustomTypes']],
             PackageEvents::POST_PACKAGE_UPDATE         => [['record'], ['enableThanksReminder']],
             PackageEvents::POST_PACKAGE_UNINSTALL      => 'record',
-            ScriptEvents::POST_CREATE_PROJECT_CMD      => [['createProject'], ['postHarmonyProjectInstall']],
+            ScriptEvents::POST_CREATE_PROJECT_CMD      => [['createProject']],
             ScriptEvents::POST_INSTALL_CMD             => 'install',
-            ScriptEvents::POST_UPDATE_CMD              => [['harmonyProjectInitialize'], ['update']],
+            ScriptEvents::POST_UPDATE_CMD              => [['harmonyProjectInitialize'], ['update'], ['postHarmonyProjectInstall']],
             PluginEvents::PRE_FILE_DOWNLOAD            => 'onFileDownload',
             'auto-scripts'                             => 'executeAutoScripts',
         ];
