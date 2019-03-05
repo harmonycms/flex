@@ -4,6 +4,7 @@ namespace Harmony\Flex\Autoload;
 
 use Composer\Autoload\AutoloadGenerator as BaseAutoloadGenerator;
 use Composer\Installer\InstallationManager;
+use Composer\Package\AliasPackage;
 use Composer\Package\PackageInterface;
 
 /**
@@ -14,19 +15,33 @@ use Composer\Package\PackageInterface;
 class AutoloadGenerator extends BaseAutoloadGenerator
 {
 
-    /** @var null|PackageInterface $customPackage */
-    protected $customPackage;
+    /** @var PackageInterface[] $customPackages */
+    protected $customPackages = [];
 
     /**
-     * Set CustomPackage
+     * Set CustomPackages
      *
-     * @param PackageInterface $customPackage
+     * @param PackageInterface[] $customPackages
      *
      * @return AutoloadGenerator
      */
-    public function setCustomPackage(PackageInterface $customPackage)
+    public function setCustomPackages(array $customPackages): AutoloadGenerator
     {
-        $this->customPackage = $customPackage;
+        $this->customPackages = $customPackages;
+
+        return $this;
+    }
+
+    /**
+     * Add CustomPackage
+     *
+     * @param PackageInterface $package
+     *
+     * @return AutoloadGenerator
+     */
+    public function addCustomPackage(PackageInterface $package): AutoloadGenerator
+    {
+        $this->customPackages[] = $package;
 
         return $this;
     }
@@ -42,15 +57,23 @@ class AutoloadGenerator extends BaseAutoloadGenerator
                                     array $packages)
     {
         $packageMap = parent::buildPackageMap($installationManager, $mainPackage, $packages);
-        if (null === $this->customPackage) {
+        if (empty($this->customPackages)) {
             return $packageMap;
         }
 
-        return array_merge($packageMap, [
-            [
-                $this->customPackage,
-                $installationManager->getInstallPath($this->customPackage)
-            ]
-        ]);
+        foreach ($this->customPackages as $package) {
+            if ($package instanceof AliasPackage) {
+                continue;
+            }
+            $this->validatePackage($package);
+
+            $packageMap[] = [
+                $package,
+                $installationManager->getInstallPath($package),
+            ];
+        }
+
+        return $packageMap;
     }
+
 }
