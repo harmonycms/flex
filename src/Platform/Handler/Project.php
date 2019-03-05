@@ -238,13 +238,11 @@ class Project
                     // Update installed.json
                     $this->updateInstalledJson($package);
 
-                    // @TODO: Update autoloader, not working currently
-                    $generator = new AutoloadGenerator($this->composer->getEventDispatcher(), $this->io);
-                    $generator->setClassMapAuthoritative(true);
+                    /** @var AutoloadGenerator $generator */
+                    $generator = $this->composer->getAutoloadGenerator();
                     $generator->setCustomPackage($package);
-                    $generator->setDevMode(true);
-                    $generator->dump($this->composer->getConfig(),
-                        $this->composer->getRepositoryManager()->getLocalRepository(), $this->composer->getPackage(),
+                    $localRepo = $this->composer->getRepositoryManager()->getLocalRepository();
+                    $generator->dump($this->composer->getConfig(), $localRepo, $this->composer->getPackage(),
                         $this->installationManager, 'composer');
 
                     // Dispatch event

@@ -46,6 +46,7 @@ use Composer\Repository\RepositoryManager;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 use Composer\Util\RemoteFilesystem;
+use Harmony\Flex\Autoload\AutoloadGenerator;
 use Harmony\Flex\IO\ConsoleIO;
 use Harmony\Flex\Platform\Handler;
 use Harmony\Flex\Repository\HarmonyRepository;
@@ -236,6 +237,9 @@ class Flex implements PluginInterface, EventSubscriberInterface
                 }
             }
         }
+
+        // Add custom autoloader
+        $composer->setAutoloadGenerator(new AutoloadGenerator($composer->getEventDispatcher(), $io));
 
         // Add installer for custom types
         $composer->getInstallationManager()->addInstaller(new Installer($this->io, $composer, 'library', null, null,
