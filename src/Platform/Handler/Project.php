@@ -84,6 +84,18 @@ class Project
     /** @var Lock $lock */
     protected $lock;
 
+    /** @var InstallOperation[] $operations */
+    protected $operations = [];
+
+    /** @var AutoloadGenerator $autoloadGenerator */
+    protected $autoloadGenerator;
+
+    /** @var InstalledFilesystemRepository $installedFilesystemRepository */
+    protected $installedFilesystemRepository;
+
+    /** @var InstalledRepositoryInterface $localRepository */
+    protected $localRepository;
+
     /**
      * Project constructor.
      *
@@ -100,17 +112,20 @@ class Project
     public function __construct(IOInterface $io, HttpClient\Client $client, Composer $composer,
                                 Configurator $configurator, Config $config, ScriptExecutor $executor, Lock $lock)
     {
-        $this->client              = $client;
-        $this->io                  = $io;
-        $this->composer            = $composer;
-        $this->fs                  = new Filesystem();
-        $this->harmonyCacheFile    = $config->get('data-dir') . '/harmony.json';
-        $this->stack               = new Stack($io, $client, $composer);
-        $this->installationManager = $composer->getInstallationManager();
-        $this->serializer          = new Serializer([new ProjectNormalizer()], [new JsonEncoder()]);
-        $this->configurator        = $configurator;
-        $this->executor            = $executor;
-        $this->lock                = $lock;
+        $this->client                        = $client;
+        $this->io                            = $io;
+        $this->composer                      = $composer;
+        $this->fs                            = new Filesystem();
+        $this->harmonyCacheFile              = $config->get('data-dir') . '/harmony.json';
+        $this->stack                         = new Stack($io, $client, $composer);
+        $this->installationManager           = $composer->getInstallationManager();
+        $this->serializer                    = new Serializer([new ProjectNormalizer()], [new JsonEncoder()]);
+        $this->configurator                  = $configurator;
+        $this->executor                      = $executor;
+        $this->lock                          = $lock;
+        $this->autoloadGenerator             = $this->composer->getAutoloadGenerator();
+        $this->installedFilesystemRepository = new InstalledFilesystemRepository(new JsonFile('php://memory'));
+        $this->localRepository               = $this->composer->getRepositoryManager()->getLocalRepository();
 
         $this->getOrAskForId();
     }
@@ -188,40 +203,93 @@ class Project
     }
 
     /**
-     * Install themes
+     * Register themes
      *
      * @return void
-     * @throws InvalidRepositoryException
      */
-    public function installThemes(): void
+    public function registerThemes(): void
     {
         if ($this->projectData->hasThemes()) {
             foreach ($this->projectData->getThemes() as $name => $options) {
-                if (null !==
-                    $package = $this->composer->getRepositoryManager()->findPackage($name, $options['version'])) {
-                    // Run package installation
-                    $this->runInstallPackage($package);
-                }
+                $this->registerOperation($name, $options['version']);
             }
         }
     }
 
     /**
-     * Install packages
+     * Register packages
      *
      * @return void
-     * @throws InvalidRepositoryException
      */
-    public function installPackages(): void
+    public function registerPackages(): void
     {
         if ($this->projectData->hasPackages()) {
             foreach ($this->projectData->getPackages() as $name => $options) {
-                if (null !==
-                    $package = $this->composer->getRepositoryManager()->findPackage($name, $options['version'])) {
-                    // Run package installation
-                    $this->runInstallPackage($package);
+                $this->registerOperation($name, $options['version']);
+            }
+        }
+    }
+
+    /**
+     * Register extensions
+     *
+     * @return void
+     */
+    public function registerExtensions(): void
+    {
+        if ($this->projectData->hasExtensions()) {
+            foreach ($this->projectData->getExtensions() as $name => $options) {
+                $this->registerOperation($name, $options['version']);
+            }
+        }
+    }
+
+    /**
+     * @param string $name
+     * @param string $constraint
+     */
+    protected function registerOperation(string $name, string $constraint): void
+    {
+        if (null !== $rootPackage = $this->composer->getRepositoryManager()->findPackage($name, $constraint)) {
+            foreach ($rootPackage->getRequires() as $link) {
+                if (null !== $package = $this->composer->getRepositoryManager()
+                        ->findPackage($link->getTarget(), $link->getConstraint())) {
+                    $this->operations[] = new InstallOperation($package);
                 }
             }
+            $this->operations[] = new InstallOperation($rootPackage, 'root-package');
+        }
+    }
+
+    /**
+     * @throws InvalidRepositoryException
+     * @throws \Exception
+     */
+    public function executeOperations(): void
+    {
+        foreach ($this->operations as $operation) {
+            // Execute install operation
+            $this->installationManager->install($this->installedFilesystemRepository, $operation);
+            $this->installationManager->notifyInstalls($this->io);
+
+            $this->autoloadGenerator->addCustomPackage($operation->getPackage());
+        }
+
+        // Update `composer.json` & `composer.lock`
+        $this->updateComposer();
+
+        // Update installed.json
+        $this->updateInstalledJson();
+
+        // Dump autoloader
+        $this->autoloadGenerator->dump($this->composer->getConfig(), $this->localRepository,
+            $this->composer->getPackage(), $this->installationManager, 'composer');
+
+        foreach ($this->operations as $operation) {
+            // Dispatch event for Symfony Flex operations
+            $this->composer->getEventDispatcher()
+                ->dispatchPackageEvent(PackageEvents::POST_PACKAGE_INSTALL, false, new DefaultPolicy(false, false),
+                    new Pool(), new CompositeRepository([]), new Request(), [$operation], $operation);
         }
     }
 
@@ -319,74 +387,21 @@ class Project
     }
 
     /**
-     * 1. Run package installation
-     * 2. Update `composer.json`, `composer.lock`, `installed.json`
-     * 3. Regenerate autoloader files
-     * 4. Dispatch event
-     *
-     * @param PackageInterface $rootPackage
-     *
-     * @throws InvalidRepositoryException
-     * @throws \Exception
-     */
-    protected function runInstallPackage(PackageInterface $rootPackage)
-    {
-        /** @var AutoloadGenerator $generator */
-        $generator  = $this->composer->getAutoloadGenerator();
-        $repository = new InstalledFilesystemRepository(new JsonFile('php://memory'));
-        /** @var InstalledRepositoryInterface $localRepo */
-        $localRepo = $this->composer->getRepositoryManager()->getLocalRepository();
-
-        $packages   = [];
-        $operations = [];
-        foreach ($rootPackage->getRequires() as $link) {
-            if (null !== $package = $this->composer->getRepositoryManager()
-                    ->findPackage($link->getTarget(), $link->getConstraint())) {
-
-                $packages[]   = $package;
-                $operations[] = new InstallOperation($package);
-            }
-        }
-        $packages[]   = $rootPackage;
-        $operations[] = new InstallOperation($rootPackage);
-
-        foreach ($packages as $key => $package) {
-            // Install package
-            $this->installationManager->install($repository, $operations[$key]);
-            $this->installationManager->notifyInstalls($this->io);
-
-            // Dispatch event
-            $this->composer->getEventDispatcher()
-                ->dispatchPackageEvent(PackageEvents::POST_PACKAGE_INSTALL, false, new DefaultPolicy(false, false),
-                    new Pool(), new CompositeRepository([]), new Request(), [$operations[$key]], $operations[$key]);
-        }
-
-        // Update `composer.json` & `composer.lock`
-        $this->updateComposer($rootPackage->getName(), $rootPackage->getPrettyVersion());
-
-        // Update installed.json
-        $this->updateInstalledJson($packages);
-
-        // Dump autoloader
-        $generator->setCustomPackages($packages);
-        $generator->dump($this->composer->getConfig(), $localRepo, $this->composer->getPackage(),
-            $this->installationManager, 'composer');
-    }
-
-    /**
      * Update `composer.json` file with installed package.
      *
-     * @param string $name
-     * @param string $version
-     *
      * @throws \Exception
      */
-    protected function updateComposer(string $name, string $version)
+    protected function updateComposer()
     {
         $json        = new JsonFile(Factory::getComposerFile());
         $contents    = file_get_contents($json->getPath());
         $manipulator = new JsonManipulator($contents);
-        $manipulator->addLink('require', $name, $version, true);
+        foreach ($this->operations as $operation) {
+            if ('root-package' === $operation->getReason()) {
+                $package = $operation->getPackage();
+                $manipulator->addLink('require', $package->getName(), $package->getPrettyVersion(), true);
+            }
+        }
         file_put_contents($json->getPath(), $manipulator->getContents());
 
         $this->updateComposerLock();
@@ -410,12 +425,10 @@ class Project
     }
 
     /**
-     * @param PackageInterface[] $packages
-     *
      * @throws InvalidRepositoryException
      * @throws \Exception
      */
-    protected function updateInstalledJson(array $packages)
+    protected function updateInstalledJson(): void
     {
         $vendorDir         = $this->composer->getConfig()->get('vendor-dir');
         $installedJsonFile = new JsonFile($vendorDir . '/composer/installed.json', null, $this->io);
@@ -435,8 +448,8 @@ class Project
                      ->getCanonicalPackages() as $canonicalPackage) {
             $data[] = $dumper->dump($canonicalPackage);
         }
-        foreach ($packages as $package) {
-            $data[] = $dumper->dump($package);
+        foreach ($this->operations as $operation) {
+            $data[] = $dumper->dump($operation->getPackage());
         }
 
         usort($data, function ($a, $b) {

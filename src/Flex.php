@@ -565,14 +565,20 @@ class Flex implements PluginInterface, EventSubscriberInterface
             $this->platform->authenticate();
             $this->project = $this->platform->getProject();
             if (true === $this->project->isActivated()) {
-                // Install packages
-                $this->project->installPackages();
+                // Register packages
+                $this->project->registerPackages();
 
                 // Install stacks.
                 $this->project->installStacks();
 
-                // Install themes
-                $this->project->installThemes();
+                // Register themes
+                $this->project->registerThemes();
+
+                // Register extensions
+                $this->project->registerExtensions();
+
+                // Execute operations
+                $this->project->executeOperations();
             }
         }
     }
@@ -1047,7 +1053,11 @@ class Flex implements PluginInterface, EventSubscriberInterface
             PackageEvents::POST_PACKAGE_UNINSTALL      => 'record',
             ScriptEvents::POST_CREATE_PROJECT_CMD      => [['createProject']],
             ScriptEvents::POST_INSTALL_CMD             => 'install',
-            ScriptEvents::POST_UPDATE_CMD              => [['harmonyProjectInitialize'], ['update'], ['postHarmonyProjectInstall']],
+            ScriptEvents::POST_UPDATE_CMD              => [
+                ['harmonyProjectInitialize'],
+                ['update'],
+                ['postHarmonyProjectInstall']
+            ],
             PluginEvents::PRE_FILE_DOWNLOAD            => 'onFileDownload',
             'auto-scripts'                             => 'executeAutoScripts',
         ];
