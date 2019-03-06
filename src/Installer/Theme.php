@@ -78,8 +78,8 @@ class Theme extends BaseInstaller
 
         $this->io->success('Theme "' . $prettyName . '" successfully installed');
 
-        if ($this->io->confirm('Set as default theme?', false)) {
-            // TODO: implements
-        }
+//        if ($this->io->confirm('Set as default theme?', false)) {
+//            // TODO: implements
+//        }
     }
 }
