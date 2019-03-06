@@ -599,7 +599,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
             $this->project->initDatabase();
 
             // Ask create new admin user
-            $this->project->createUser();
+            //$this->project->createUser();
 
             // Clear useless/unused files/folders
             $this->project->clear();
