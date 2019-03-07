@@ -98,9 +98,6 @@ class Flex implements PluginInterface, EventSubscriberInterface
     /** @var Lock $lock */
     private $lock;
 
-    /** @var Lock $harmonyLock */
-    private $harmonyLock;
-
     /** @var bool $cacheDirPopulated */
     private $cacheDirPopulated = false;
 
@@ -221,7 +218,6 @@ class Flex implements PluginInterface, EventSubscriberInterface
         $this->downloader->setFlexId($this->getFlexId());
         $this->lock        = new Lock(getenv('SYMFONY_LOCKFILE') ?:
             str_replace('composer.json', 'symfony.lock', Factory::getComposerFile()));
-        $this->harmonyLock = new Lock(str_replace('composer.json', 'harmony.lock', Factory::getComposerFile()));
 
         $populateRepoCacheDir = __CLASS__ === self::class;
         if ($composer->getPluginManager()) {
