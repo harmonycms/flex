@@ -34,6 +34,7 @@ use Composer\Json\JsonFile;
 use Composer\Json\JsonManipulator;
 use Composer\Package\BasePackage;
 use Composer\Package\Comparer\Comparer;
+use Composer\Package\Link;
 use Composer\Package\Locker;
 use Composer\Package\PackageInterface;
 use Composer\Plugin\PluginEvents;
@@ -330,12 +331,10 @@ class Flex implements PluginInterface, EventSubscriberInterface
     }
 
     /**
-     * @param Event $event
-     *
      * @throws \Http\Client\Exception
      * @throws \Throwable
      */
-    public function createProject(Event $event)
+    public function createProject()
     {
         if (null === $this->downloader->getEndpoint()) {
             $this->io->writeError('<warning>Project configuration is disabled: "harmony/flex" not found in the root composer.json</warning>');
@@ -535,12 +534,10 @@ class Flex implements PluginInterface, EventSubscriberInterface
     }
 
     /**
-     * @param Event $event
-     *
      * @throws \Http\Client\Exception
      * @throws \Exception
      */
-    public function harmonyProjectInitialize(Event $event)
+    public function harmonyProjectInitialize()
     {
         if ('create-project' === $this->command) {
             $this->platform->authenticate();
@@ -663,8 +660,10 @@ class Flex implements PluginInterface, EventSubscriberInterface
             $packages[]                  = [$job['packageName'], $job['constraint']];
         }
 
+        /** @var Pool $pool */
         $this->rfs->download($packages, function ($packageName, $constraint) use (&$listed, &$packages, $pool) {
             foreach ($pool->whatProvides($packageName, $constraint, true) as $package) {
+                /** @var Link $link */
                 foreach (array_merge($package->getRequires(), $package->getConflicts(),
                     $package->getReplaces()) as $link) {
                     if (isset($listed[$link->getTarget()]) || false === strpos($link->getTarget(), '/')) {
