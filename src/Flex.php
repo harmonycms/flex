@@ -41,8 +41,6 @@ use Composer\Plugin\PluginInterface;
 use Composer\Plugin\PreFileDownloadEvent;
 use Composer\Repository\ComposerRepository as BaseComposerRepository;
 use Composer\Repository\ComposerRepository;
-use Composer\Repository\RepositoryFactory;
-use Composer\Repository\RepositoryManager;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 use Composer\Util\RemoteFilesystem;
@@ -181,42 +179,29 @@ class Flex implements PluginInterface, EventSubscriberInterface
             $this->io->success('HarmonyFlex plugin initialized successfully');
         }
 
-        // Merge config
-        $this->config->merge([
-            'repositories' => [
-                HarmonyRepository::REPOSITORY_NAME => HarmonyRepository::$defaultRepositories
-            ]
-        ]);
-
+        // Remote Filesystem
         $rfs       = Factory::createRemoteFilesystem($this->io, $this->config);
         $this->rfs = new ParallelDownloader($this->io, $this->config, $rfs->getOptions(), $rfs->isTlsDisabled());
 
         $symfonyRequire = getenv('SYMFONY_REQUIRE') ?:
             ($composer->getPackage()->getExtra()['symfony']['require'] ?? null);
 
-        $manager         = RepositoryFactory::manager($this->io, $this->config, $composer->getEventDispatcher(),
-            $this->rfs);
-        $setRepositories = \Closure::bind(function (RepositoryManager $manager) use (&$symfonyRequire) {
-            $manager->repositoryClasses = $this->repositoryClasses;
-            $manager->setRepositoryClass('composer', TruncatedComposerRepository::class);
-            $manager->repositories = $this->repositories;
-            $i                     = 0;
-            foreach (RepositoryFactory::defaultRepos(null, $this->config, $manager) as $repo) {
-                $manager->repositories[$i ++] = $repo;
-                if ($repo instanceof TruncatedComposerRepository && $symfonyRequire) {
-                    $repo->setSymfonyRequire($symfonyRequire, $this->io);
-                }
-            }
-            $manager->setLocalRepository($this->getLocalRepository());
-        }, $composer->getRepositoryManager(), RepositoryManager::class);
-
-        $setRepositories($manager);
+        // Repository manager
+        $manager = $composer->getRepositoryManager();
+        $manager->addRepository(new HarmonyRepository([], $io, $this->config, $composer->getEventDispatcher(),
+            $this->rfs));
+        $truncatedRepository = new TruncatedComposerRepository(Config::$defaultRepositories['packagist.org'], $io,
+            $this->config, $composer->getEventDispatcher(), $rfs);
+        if ($symfonyRequire) {
+            $truncatedRepository->setSymfonyRequire($symfonyRequire, $this->io);
+        }
+        $manager->addRepository($truncatedRepository);
         $composer->setRepositoryManager($manager);
 
         $this->configurator = new Configurator($composer, $io, $this->options);
         $this->downloader   = new Downloader($composer, $io, $this->rfs);
         $this->downloader->setFlexId($this->getFlexId());
-        $this->lock        = new Lock(getenv('SYMFONY_LOCKFILE') ?:
+        $this->lock = new Lock(getenv('SYMFONY_LOCKFILE') ?:
             str_replace('composer.json', 'symfony.lock', Factory::getComposerFile()));
 
         $populateRepoCacheDir = __CLASS__ === self::class;
@@ -295,7 +280,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
                 $this->displayThanksReminder = 1;
             } elseif ('outdated' === $this->command) {
                 $symfonyRequire = null;
-                $setRepositories($manager);
+                //                $setRepositories($manager);
             }
 
             if (isset(self::$aliasResolveCommands[$this->command])) {
