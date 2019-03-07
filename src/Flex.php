@@ -694,6 +694,7 @@ class Flex implements PluginInterface, EventSubscriberInterface
         $getCacheKey = \Closure::bind($getCacheKey, new FileDownloader($this->io, $this->config),
             FileDownloader::class);
 
+        /** @var InstallOperation|UpdateOperation $op */
         foreach ($event->getOperations() as $op) {
             if ('install' === $op->getJobType()) {
                 $package = $op->getPackage();
