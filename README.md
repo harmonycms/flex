@@ -7,11 +7,11 @@ Custom configurators
 --------------------
 
 ### `extensions` Configurator
-Internal configurator to configure packages of type `harmony-extension`.
+Internal configurator for packages of type `harmony-extension`.
 
 
 ### `themes` Configurator
-Internal configurator to configure packages of type `harmony-theme`.
+Internal configurator for packages of type `harmony-theme`.
 
 
 [Symfony Flex]: https://github.com/symfony/flex
