@@ -3,8 +3,6 @@ HarmonyFlex
 
 Based on [Symfony Flex], **HarmonyFlex** is a Composer plugin allowing the end-user to connect through the HarmonyAPI to manage HarmonyProjects and configuration for extensions, packages, themes and translations.
 
----
-
 Custom configurators
 --------------------
 
