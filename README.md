@@ -6,6 +6,25 @@ Based on [Symfony Flex], **HarmonyFlex** is a Composer plugin allowing the end-u
 Custom configurators
 --------------------
 
+### `copy-from-recipe-if` Configurator
+Copies files or directories only if specified package is installed.
+This configurator is identical to `copy-from-recipe` provided by Symfony Flex.
+
+It is useful to copy only certain files or directories to avoid throwing issues when clearing the cache by example:
+
+```yaml
+"copy-from-recipe-if": {
+    "emulienfou/orm-pack": {
+      "config/packages/doctrine.yaml": "%CONFIG_DIR%/packages/doctrine.yaml",
+      "src/Entity/": "%SRC_DIR%/Entity"
+    },
+    "emulienfou/mongodb-pack": {
+      "config/packages/doctrine_mongodb.yaml": "%CONFIG_DIR%/packages/doctrine_mongodb.yaml",
+      "src/Document/": "%SRC_DIR%/Document"
+    }
+  }
+```
+
 ### `extensions` Configurator
 Internal configurator for packages of type `harmony-extension`.
 

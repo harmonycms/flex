@@ -54,17 +54,18 @@ class Configurator
         $this->options  = $options;
         // ordered list of configurators
         $this->configurators = [
-            'bundles'           => SymfonyConfigurator\BundlesConfigurator::class,
-            'copy-from-recipe'  => SymfonyConfigurator\CopyFromRecipeConfigurator::class,
-            'copy-from-package' => SymfonyConfigurator\CopyFromPackageConfigurator::class,
-            'env'               => SymfonyConfigurator\EnvConfigurator::class,
-            'container'         => SymfonyConfigurator\ContainerConfigurator::class,
-            'makefile'          => SymfonyConfigurator\MakefileConfigurator::class,
-            'composer-scripts'  => SymfonyConfigurator\ComposerScriptsConfigurator::class,
-            'gitignore'         => SymfonyConfigurator\GitignoreConfigurator::class,
-            'env-project'       => Configurator\EnvProjectConfigurator::class,
-            'themes'            => Configurator\ThemesConfigurator::class,
-            'extensions'        => Configurator\ExtensionsConfigurator::class
+            'bundles'             => SymfonyConfigurator\BundlesConfigurator::class,
+            'copy-from-recipe'    => SymfonyConfigurator\CopyFromRecipeConfigurator::class,
+            'copy-from-package'   => SymfonyConfigurator\CopyFromPackageConfigurator::class,
+            'env'                 => SymfonyConfigurator\EnvConfigurator::class,
+            'container'           => SymfonyConfigurator\ContainerConfigurator::class,
+            'makefile'            => SymfonyConfigurator\MakefileConfigurator::class,
+            'composer-scripts'    => SymfonyConfigurator\ComposerScriptsConfigurator::class,
+            'gitignore'           => SymfonyConfigurator\GitignoreConfigurator::class,
+            'env-project'         => Configurator\EnvProjectConfigurator::class,
+            'themes'              => Configurator\ThemesConfigurator::class,
+            'extensions'          => Configurator\ExtensionsConfigurator::class,
+            'copy-from-recipe-if' => Configurator\ConditionCopyFromRecipeConfigurator::class
         ];
     }
 
