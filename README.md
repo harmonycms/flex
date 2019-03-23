@@ -12,8 +12,9 @@ This configurator is identical to `copy-from-recipe` provided by Symfony Flex.
 
 It is useful to copy only certain files or directories to avoid throwing issues when clearing the cache by example:
 
-```yaml
-"copy-from-recipe-if": {
+```json
+{
+  "copy-from-recipe-if": {
     "emulienfou/orm-pack": {
       "config/packages/doctrine.yaml": "%CONFIG_DIR%/packages/doctrine.yaml",
       "src/Entity/": "%SRC_DIR%/Entity"
@@ -23,6 +24,7 @@ It is useful to copy only certain files or directories to avoid throwing issues 
       "src/Document/": "%SRC_DIR%/Document"
     }
   }
+}
 ```
 
 ### `extensions` Configurator
