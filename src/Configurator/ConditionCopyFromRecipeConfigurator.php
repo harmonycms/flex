@@ -46,7 +46,8 @@ class ConditionCopyFromRecipeConfigurator extends AbstractConfigurator
         $installedRepo = $this->composer->getRepositoryManager()->getLocalRepository();
 
         foreach ($config as $condition => $files) {
-            if ($installedRepo->findPackage($condition, '*')) {
+            [$name, $constraint] = explode(':', $condition) + ['', '*'];
+            if ($installedRepo->findPackage($name, $constraint)) {
                 $lock->add($recipe->getName(), ['files' => $this->copyFiles($files, $recipe->getFiles(), $options)]);
             }
         }
@@ -62,7 +63,8 @@ class ConditionCopyFromRecipeConfigurator extends AbstractConfigurator
         $this->write('Removing configuration and files conditionally');
         $installedRepo = $this->composer->getRepositoryManager()->getLocalRepository();
         foreach ($config as $condition => $files) {
-            if ($installedRepo->findPackage($condition, '*')) {
+            [$name, $constraint] = explode(':', $condition) + ['', '*'];
+            if ($installedRepo->findPackage($name, $constraint)) {
                 $this->removeFiles($config, $this->getRemovableFilesFromRecipeAndLock($recipe, $lock),
                     $this->options->get('root-dir'));
             }
