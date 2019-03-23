@@ -41,7 +41,7 @@ class ConditionCopyFromRecipeConfigurator extends AbstractConfigurator
      */
     public function configure($recipe, $config, Lock $lock, array $options = [])
     {
-        $this->write('Setting configuration and copying files');
+        $this->write('Setting configuration and copying files conditionally');
         $options       = array_merge($this->options->toArray(), $options);
         $installedRepo = $this->composer->getRepositoryManager()->getLocalRepository();
 
@@ -59,7 +59,7 @@ class ConditionCopyFromRecipeConfigurator extends AbstractConfigurator
      */
     public function unconfigure($recipe, $config, Lock $lock)
     {
-        $this->write('Removing configuration and files');
+        $this->write('Removing configuration and files conditionally');
         $installedRepo = $this->composer->getRepositoryManager()->getLocalRepository();
         foreach ($config as $condition => $files) {
             if ($installedRepo->findPackage($condition, '*')) {
