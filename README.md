@@ -16,16 +16,32 @@ It is useful to copy only certain files or directories to avoid throwing issues 
 {
   "copy-from-recipe-if": {
     "emulienfou/orm-pack": {
-      "config/packages/doctrine.yaml": "%CONFIG_DIR%/packages/doctrine.yaml",
       "src/Entity/": "%SRC_DIR%/Entity"
     },
     "emulienfou/mongodb-pack": {
-      "config/packages/doctrine_mongodb.yaml": "%CONFIG_DIR%/packages/doctrine_mongodb.yaml",
       "src/Document/": "%SRC_DIR%/Document"
     }
   }
 }
 ```
+
+### `merge-from-recipe-if` Configurator
+Merge content between file in recipe and the one in the project.
+> Currently, it is not possible to perform an un-merge action!
+
+```json
+{
+  "merge-from-recipe-if": {
+    "emulienfou/orm-pack": {
+      "config/packages/doctrine.yaml": "%CONFIG_DIR%/packages/doctrine.yaml"
+    },
+    "emulienfou/mongodb-pack": {
+      "config/packages/doctrine_mongodb.yaml": "%CONFIG_DIR%/packages/doctrine_mongodb.yaml"
+    }
+  }
+}
+```
+
 
 ### `extensions` Configurator
 Internal configurator for packages of type `harmony-extension`.
